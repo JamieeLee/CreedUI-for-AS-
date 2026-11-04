@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.14.3
+- **Tiny Plates:** regular enemy plates use compact half-size Arcane-derived layered health bars and Creed UI typography; bosses and guardians keep full-size plates with the same styling and their debuffs below. Health numbers have an independent toggle, and disabling Tiny Plates restores the game's native plates and V-key visibility behavior.
+- **One minimap button:** the separate Luck clover and Damage Meter swords are removed. The Creed C and the central options hub remain; Luck and the damage meter are shown or hidden from the hub, without extra minimap buttons.
+
+
 ## 1.14.2
 - **Skill bar:** both ends look the same now (the kills, gold and cache sit at the right end of their room, the rails' diamonds at the frame's middle), so the right side no longer looks stretched.
 - **Boss timer:** its metal (rails and the bosses' sockets) is the dark bronze gold of the rest of Creed UI; its bar, glow and title keep each zone's colors, and the bosses' diamonds are red in every zone.

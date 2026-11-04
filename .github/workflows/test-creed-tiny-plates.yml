@@ -1,0 +1,54 @@
+name: Creed UI Tiny Plates test build
+
+on:
+  push:
+    branches:
+      - feature/creed-menu-and-tiny-plates
+    paths:
+      - 'CreedUI/**'
+      - 'dev/cui/**'
+      - 'dev/engine_methods.lua'
+      - 'dev/bt/sim.lua'
+      - '.github/workflows/test-creed-tiny-plates.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'CreedUI/**'
+      - 'dev/cui/**'
+      - 'dev/engine_methods.lua'
+      - 'dev/bt/sim.lua'
+      - '.github/workflows/test-creed-tiny-plates.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install Lua 5.1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1
+      - name: Check Lua syntax
+        run: |
+          find CreedUI -name '*.lua' -print0 | xargs -0 -n1 luac5.1 -p
+          luac5.1 -p dev/cui/mock_creed_plates.lua
+          luac5.1 -p dev/cui/tiny_plates_tests.lua
+      - name: Run Tiny Plates and menu regression tests
+        run: lua5.1 dev/cui/tiny_plates_tests.lua dev CreedUI
+      - name: Build and validate installable ZIP
+        run: |
+          mkdir -p dist
+          zip -qr dist/CreedUI-Tiny-Plates-test.zip CreedUI
+          unzip -t dist/CreedUI-Tiny-Plates-test.zip
+      - name: Upload installable test ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: CreedUI-Tiny-Plates-test
+          path: dist/CreedUI-Tiny-Plates-test.zip
+          if-no-files-found: error
+          retention-days: 7

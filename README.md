@@ -5,6 +5,7 @@ A clean, smooth HUD for **Azeroth Survivors** ([wow.aethus.pl](https://wow.aethu
 ## What's in it
 
 - **Boss timer:** a themed countdown to each boss, with the run's time.
+- **Tiny Plates:** compact half-size regular enemy plates and full-size boss/guardian plates, with Creed UI's layered health bars, matching typography, optional health numbers, and debuffs. Native nameplates and V-key visibility are restored when disabled.
 - **Boss and mini-boss bars:** red bars with real health numbers and the debuffs on them.
 - **Skulls:** a horned skull with red eyes floating over each boss, and a plainer one over each guardian, wherever it is on the screen, large when near and small when far.
 - **Your frame, your target and your party:** in class colors, portraits in metal rings.
@@ -14,7 +15,7 @@ A clean, smooth HUD for **Azeroth Survivors** ([wow.aethus.pl](https://wow.aethu
 - **Stored level-ups:** a glowing Level Up! button with how many wait (with the game's Store Level-Ups on).
 - **Damage meter:** Damage Done, Healing Done, Boss Damage, Party DPS and Damage Taken, with icons, per second and shares. Resizable from any edge.
 - **Luck medallion:** your luck and the odds of a Rare, Epic or Legendary card.
-- **Minimap:** a metal ring, your local time, the caches and the guardians' lairs (with the time until each empty lair fills), and buttons on its edge you can drag around it: the **C** opens the options, the **crossed swords** show or hide the meter, the **clover** the luck window.
+- **Minimap:** a metal ring, your local time, the caches and the guardians' lairs. The single **C** button opens Creed UI Options; use the **Luck** and **Damage meter** controls there to show or hide those windows.
 - **Character window:** gear slots lit in their rarity color and your run's stats grouped beside it (zeros dimmed, changes flashing); its Talents tab opens Creed UI's talent window (your trees, points and learned talents with their ranks).
 - **Chat:** dressed to match, and kept clear of the skill bar's dragon.
 - **Damage numbers:** calm and readable; a spell hitting a crowd adds up into one number a second, and a number that keeps stacking grows.

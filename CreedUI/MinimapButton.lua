@@ -1,10 +1,5 @@
--- Creed UI: buttons on the minimap's edge. Each a round bezel in the ring's metal with a crest in
--- it, sliding along the edge wherever it's dragged (its place kept). Three of them: Creed's C opens
--- the options (a right click frees the frames to move, or locks them again), the crossed swords show
--- or hide the damage meter, the clover the luck window. The C is a part of its own: with the minimap
--- left as the game's it still sits on the edge. Where they start: the meter's and the luck window's
--- on the left (where their gems were), the C on the lower right, all clear of the buffs on the upper
--- left, the north mark and the clock.
+-- Creed UI: one round minimap-edge button. The Creed C opens the central options hub; Luck
+-- and the damage meter are shown or hidden with their controls in that menu.
 
 local C = CreedUI
 local DEFAULTS = { enabled = true, angle = 315 }

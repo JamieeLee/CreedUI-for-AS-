@@ -5,7 +5,7 @@
 CreedUI = {}
 local C = CreedUI
 
-C.VERSION = "1.14.2"
+C.VERSION = "1.14.3"
 C.ART = "Interface\\AddOns\\CreedUI\\Art\\"
 C.FLAT = "Interface\\ChatFrame\\ChatFrameBackground"
 C.FONT = "Fonts\\FRIZQT__.TTF"
@@ -1309,11 +1309,18 @@ local function BuildHub()
 	o.lock:SetPoint("TOPLEFT", o, "TOPLEFT", 14 + COL_W, y)
 	y = y - 30
 	-- the language: a button that opens the list of them, each in its own words
-	o.lang = C.Button(o, 302, 24, "", function()
+	local platesButton = C.Button(o, 148, 24, "", function()
+		if C.tinyPlatesOptions then C.tinyPlatesOptions(o) end
+	end)
+	C.LText(platesButton.text, "Tiny Plates settings")
+	platesButton:SetPoint("TOPLEFT", o, "TOPLEFT", 14, y)
+	local langButton = C.Button(o, 148, 24, "", function()
 		if o.langMenu:IsShown() then o.langMenu:Hide() else o.langMenu:Show() end
 		RefreshHub()
 	end)
-	o.lang:SetPoint("TOPLEFT", o, "TOPLEFT", 14, y)
+	C.LText(langButton.text, "Language")
+	langButton:SetPoint("TOPLEFT", o, "TOPLEFT", 168, y)
+	o.lang = langButton
 	local menu = CreateFrame("Frame", "CreedUILanguageMenu", o)
 	o.langMenu = menu
 	local n = table.getn(C.LANG_LIST)

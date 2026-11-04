@@ -151,7 +151,10 @@ local function Build()
 	root.close.text:SetPoint("CENTER", root.close, "CENTER", 0, 0)
 	root.close.text:SetText("x")
 	root.close.text:SetTextColor(0.78, 0.74, 0.66)
-	root.close:SetScript("OnClick", function() db.shown = false end)
+	root.close:SetScript("OnClick", function()
+		db.shown = false
+		if C.RefreshHub then C.RefreshHub() end
+	end)
 	root.close:SetScript("OnEnter", function()
 		root.close.text:SetTextColor(1, 0.9, 0.6)
 		if GameTooltip then
@@ -433,25 +436,9 @@ local function Sizing(mover)
 	S.sizer.levels(root:GetFrameLevel() + 6)
 end
 
--- its button on the minimap's edge, by the meter's: a clover that shows or hides it (dim while it's
--- hidden) and slides along the edge (MinimapButton); it starts on the left, where the gem was
-local function BuildToggle()
-	if type(Minimap) ~= "table" or not C.EdgeButton then return end
-	root.toggle = C.EdgeButton({
-		frame = "CreedUILuckToggle", crest = "MapClover", store = db, field = "edgeAngle", angle = 222,
-		tint = function() return LUCK[1], LUCK[2], LUCK[3] end,
-		dim = function() return not db.shown end,
-		tip = function()
-			GameTooltip:AddLine(C.L("Luck"), LUCK[1], LUCK[2], LUCK[3])
-			GameTooltip:AddLine(C.L("Click to show or hide it."), 1, 1, 1)
-		end,
-		click = function() db.shown = not db.shown end,
-	})
-	if root.toggle and not db.enabled then root.toggle:Hide() end
-end
-
 C.OnInit(function()
 	db = C.DB("luck", DEFAULTS)
+	db.edgeAngle = nil -- the former minimap toggle now lives in Creed UI Options
 	db.source = nil -- the old window's choice of drop, gone with it
 	W = C.Clamp(tonumber(db.width) or DEFAULTS.width, MIN_W, MAX_W)
 	db.scale = C.Clamp(tonumber(db.scale) or 1, MIN_SCALE, MAX_SCALE)
@@ -468,7 +455,6 @@ C.OnInit(function()
 	local drag = C.Draggable(root, mover)
 	for i = 1, table.getn(root.gems) do drag.handle(root.gems[i].hit) end
 	Sizing(mover)
-	BuildToggle()
 	local driver = CreateFrame("Frame", "CreedUILuckDriver")
 	local broken = false
 	driver:SetScript("OnUpdate", function()
@@ -493,13 +479,11 @@ end)
 
 C.RegisterPart({
 	key = "luck", name = "Luck",
-	note = "Your luck on a bronze medallion, and the chance of a Rare, Epic or Legendary card as three gems (1 in N); luck you gain shows on the medallion. Drag its sides to widen it, its corners to size it; the clover on the minimap's edge shows or hides it.",
-	get = function() return db and db.enabled end,
+	note = "Your luck on a bronze medallion, and the chance of a Rare, Epic or Legendary card as three gems (1 in N); luck you gain shows on the medallion. Drag its sides to widen it, its corners to size it; use the Luck toggle in Creed UI Options to show or hide the window.",
+	get = function() return db and db.enabled and db.shown end,
 	set = function(on)
 		if db then
-			db.enabled = on and true or false
-			if db.enabled then db.shown = true end
-			if root.toggle then if db.enabled then root.toggle:Show() else root.toggle:Hide() end end
+			if on then db.enabled, db.shown = true, true else db.shown = false end
 		end
 	end,
 	getScale = function() return db and db.scale or 1 end,

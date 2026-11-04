@@ -758,7 +758,8 @@ local function Build()
 	root.close = TextButton(root, "x", 16, function()
 		db.shown = false
 		ShowMenu(false)
-	end, "Hide the meter (the swords on the minimap's edge bring it back)")
+		if C.RefreshHub then C.RefreshHub() end
+	end, "Click to show or hide it.")
 	root.close:SetPoint("RIGHT", root, "TOPRIGHT", -4, -HEAD * 0.5)
 	root.fold = TextButton(root, "^", 16, function()
 		db.collapsed = not db.collapsed
@@ -1114,24 +1115,6 @@ local function Step(dt)
 	end
 end
 
------------------------------------------------------------------------- its button on the minimap's edge
--- crossed swords: a click shows or hides the meter (they dim while it's hidden), a drag slides them
--- along the edge (MinimapButton); they start on the left, where the gem was
-local function BuildToggle()
-	if type(Minimap) ~= "table" or not C.EdgeButton then return end
-	root.toggle = C.EdgeButton({
-		frame = "CreedUIMeterToggle", crest = "MapSwords", store = db, field = "edgeAngle", angle = 194,
-		tint = function() return 1, 1, 1 end, -- steel, gold and red of their own
-		glow = function() return 1, 0.42, 0.26 end,
-		dim = function() return not db.shown end,
-		tip = function()
-			GameTooltip:AddLine(C.L("Damage meter"), 0.98, 0.85, 0.52)
-			GameTooltip:AddLine(C.L("Click to show or hide it."), 1, 1, 1)
-		end,
-		click = function() db.shown = not db.shown end,
-	})
-end
-
 ------------------------------------------------------------------------ setup
 local function Anchor(f)
 	f:ClearAllPoints()
@@ -1149,9 +1132,6 @@ local function SetEnabled(on)
 		C.TakeHud("meter")
 	else
 		C.ReleaseHud("meter")
-	end
-	if root.toggle then
-		if db.enabled then root.toggle:Show() else root.toggle:Hide() end
 	end
 end
 
@@ -1176,6 +1156,7 @@ end
 
 C.OnInit(function()
 	db = C.DB("meter", DEFAULTS)
+	db.edgeAngle = nil -- the former minimap toggle now lives in Creed UI Options
 	if type(db.colors) ~= "table" then db.colors = {} end
 	local count = 0
 	for _ in pairs(db.colors) do count = count + 1 end
@@ -1189,8 +1170,6 @@ C.OnInit(function()
 	local mover = C.Movable(root, "meter", "Damage meter", Anchor)
 	C.OverCards(root) -- lit over the level-up cards' veil (Core)
 	Scripts(mover)
-	BuildToggle()
-	if root.toggle and not db.enabled then root.toggle:Hide() end
 	local driver = CreateFrame("Frame", "CreedUIMeterDriver")
 	local broken = false
 	driver:SetScript("OnUpdate", function()
@@ -1229,14 +1208,19 @@ end)
 C.meterToggle = function()
 	if db then
 		if not db.enabled then SetEnabled(true) else db.shown = not db.shown end
+		if C.RefreshHub then C.RefreshHub() end
 	end
 end
 
 C.RegisterPart({
 	key = "meter", name = "Damage meter",
-	note = "Damage Done, Healing Done, Boss Damage and Party DPS with icons, per second and shares; Reset counts again in this window only. Drag the title to move it, the corner to resize. Replaces the game's meter window.",
-	get = function() return db and db.enabled end,
-	set = function(on) if db then SetEnabled(on) end end,
+	note = "Damage Done, Healing Done, Boss Damage and Party DPS with icons, per second and shares; Reset counts again in this window only. Drag the title to move it, the corner to resize. Use the Damage meter toggle in Creed UI Options to show or hide it; while enabled, it replaces the game's meter window.",
+	get = function() return db and db.enabled and db.shown end,
+	set = function(on)
+		if db then
+			if on then SetEnabled(true) else db.shown = false end
+		end
+	end,
 	getScale = function() return db and db.scale or 1 end,
 	setScale = function(v)
 		if db then
