@@ -1,0 +1,33 @@
+name: Export full source for Arcane
+
+on:
+  push:
+    branches:
+      - arcane-seed-export
+    paths:
+      - ".github/workflows/package-full-source.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Package complete repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/package"
+          cd "$GITHUB_WORKSPACE"
+          zip -qr "$RUNNER_TEMP/package/Arcane-source.zip" . -x "./.git/*"
+          unzip -t "$RUNNER_TEMP/package/Arcane-source.zip"
+      - name: Upload complete source ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Arcane-source
+          path: ${{ runner.temp }}/package/Arcane-source.zip
+          if-no-files-found: error
+          retention-days: 7
