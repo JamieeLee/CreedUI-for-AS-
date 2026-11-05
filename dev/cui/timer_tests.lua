@@ -340,6 +340,23 @@ check(root().__mouse == false, "locked bar lets clicks through")
 M.Slash("timer reset")
 problems("move")
 
+------------------------------------------------------------------ 13b. Scholomance (0.140.0): its own look and its bosses, even after a bare /reload
+SIM.StartRun("scholomance")
+SIM.Advance(2, 1 / 30)
+CreedUIDB.timer.last = nil
+M.zoneText = "Somewhere"
+M.Reload(ADDON, false)
+AZS_SCHEDULE = {}
+AZS_ZONE = {}
+SIM.hideSchedule = true
+SIM.Advance(1, 1 / 30)
+check(hasText("Scholomance") ~= nil, "Scholomance guessed from its first boss's name")
+check(table.getn(markers()) == 5, "Scholomance's five bosses from the built-in schedule (" .. table.getn(markers()) .. ")")
+check(hasText("^Kirtonos the Herald") ~= nil, "Kirtonos called out first")
+SIM.hideSchedule = false
+M.zoneText = "Elwynn Forest"
+problems("scholomance")
+
 ------------------------------------------------------------------ 14. other languages: names that match nothing built in
 SIM.StartRun("arena", { names = { "Hohepriesterin Jeklik", "Hohepriester Venoxis", "Blutfürst Mandokir", "Jin'do der Verhexer", "Hakkar der Seelenschinder" } })
 SIM.Advance(2, 1 / 30)

@@ -58,7 +58,7 @@ local function PanelText(parent, text, x, y, width, size, color)
 	fs:SetTextColor(color and color[1] or 0.92, color and color[2] or 0.92, color and color[3] or 0.92)
 	fs:SetShadowColor(0, 0, 0, 1)
 	fs:SetShadowOffset(1, -1)
-	fs:SetText(text)
+	C.LText(fs, text) -- in the player's language
 	return fs
 end
 
@@ -94,8 +94,8 @@ local function Checkbox(parent, key, label, note, x, y)
 	b:SetScript("OnEnter", function()
 		if not note or not GameTooltip then return end
 		GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
-		GameTooltip:AddLine(label, 0.98, 0.85, 0.52)
-		GameTooltip:AddLine(note, 1, 1, 1, 1)
+		GameTooltip:AddLine(C.L(label), 0.98, 0.85, 0.52)
+		GameTooltip:AddLine(C.L(note), 1, 1, 1, 1)
 		C.ShowTip()
 	end)
 	b:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
@@ -161,6 +161,7 @@ local function MakeColorRow(parent, category, title, y)
 		C.TinyPlatesRefresh(true)
 		C.TinyPlatesRefreshOptions()
 	end)
+	C.LText(reset.text, "Reset")
 	reset:SetPoint("TOPLEFT", parent, "TOPLEFT", 232, y - 19)
 	local picks = {}
 	local function PresetAction(cat, preset)

@@ -1,0 +1,83 @@
+name: Release
+
+# Adds a "Run workflow" button under Actions -> Release. Type the new version there and the
+# workflow sets it in the .toc ("## Version:") and in Core.lua (C.VERSION, shown in the options),
+# commits, tags, builds CreedUi-<version>.zip (with the CreedUI folder inside) and creates the
+# release, its text taken from that version's entry in CHANGELOG.md.
+#
+# Made after step 5 of the SurvivorsForge creator guide
+# (https://forge.rezondes.net/docs/creator-guide), with one difference: the addon lives in the
+# CreedUI folder of this repository (beside dev/ and the docs), so only that folder goes in the zip.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "New version, for example 1.18.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      ADDON: CreedUI
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the version number
+        run: |
+          if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Write the version as three numbers, for example 1.18.0 (no v in front)"
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "::error::Version $VERSION exists already. Pick a higher number"
+            exit 1
+          fi
+          if ! grep -q '^## Version:' "$ADDON/$ADDON.toc"; then
+            echo "::error::$ADDON/$ADDON.toc has no '## Version:' line"
+            exit 1
+          fi
+          if ! grep -q '^C.VERSION = "' "$ADDON/Core.lua"; then
+            echo "::error::$ADDON/Core.lua has no 'C.VERSION = \"...\"' line"
+            exit 1
+          fi
+
+      - name: Set the version in the .toc and in Core.lua
+        run: |
+          perl -pi -e 's/^## Version:[^\r\n]*/## Version: $ENV{VERSION}/' "$ADDON/$ADDON.toc"
+          perl -pi -e 's/^C\.VERSION = "[^"]*"/C.VERSION = "$ENV{VERSION}"/' "$ADDON/Core.lua"
+
+      - name: Commit, tag and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Release v$VERSION" || echo "The .toc already had version $VERSION"
+          git tag "v$VERSION"
+          git push origin HEAD "v$VERSION"
+
+      - name: Build the zip
+        run: |
+          # only the addon folder, as CreedUI/ inside CreedUi-<version>.zip
+          git archive --format=zip --prefix="$ADDON/" -o "CreedUi-$VERSION.zip" "v$VERSION:$ADDON"
+          unzip -l "CreedUi-$VERSION.zip" | grep -q "$ADDON/$ADDON.toc"
+
+      - name: Take the release notes from CHANGELOG.md
+        run: |
+          # the lines under "## <version>" up to the next "## "
+          awk -v v="$VERSION" '
+            $0 ~ "^## " { if (on) exit; on = ($0 == "## " v); next }
+            on { print }
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "No CHANGELOG.md entry for $VERSION: the release lists its commits instead." > notes.md
+          fi
+          cat notes.md
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v$VERSION" "CreedUi-$VERSION.zip" --title "Creed UI $VERSION" --notes-file notes.md

@@ -13,15 +13,22 @@ picture of the change.
   in Rust ([github.com/samwhosung/benilla](https://github.com/samwhosung/benilla)). The game adds its
   own addon API (`AZS_*`, see section 6).
 - Addon language: **Lua 5.0** with the **1.12 widget API**.
-- Current version: **1.14.2**. Repository: <https://github.com/CreedASui/CreedUI-for-AS->.
+- Current version: **1.19.0**. Repository: <https://github.com/CreedASui/CreedUI-for-AS->.
 - 11 languages: en, fr, de, es, pt, zh, ru, ja, ko, pl, tr.
 
 ## 2. Releases
 
 The repository holds everything since 1.8.3. Claude Code sessions here may push only their own
-branch and can't make tags or GitHub releases: the user makes each release on GitHub's website
-(tag `v<version>`, title **Creed UI <version>**, the version's `CHANGELOG.md` entry as text, and
-`CreedUi-<version>.zip` attached). Give them those steps and the zip.
+branch and can't make tags or GitHub releases. Releases are made by the **Release** workflow
+(`.github/workflows/release.yml`, after the SurvivorsForge creator guide, steps 5 and 6): the user
+opens **Actions → Release → Run workflow** on GitHub and types the version. It sets `## Version`
+in the .toc and `C.VERSION` in Core.lua, commits, tags `v<version>`, zips only the `CreedUI/`
+folder as **`CreedUi-<version>.zip`**, and creates the release **Creed UI <version>** with that
+version's `CHANGELOG.md` entry as its text. So a session ships by merging the work with its
+CHANGELOG entry (bumping the version itself is optional; the workflow does it), then telling the
+user the version to type. On SurvivorsForge the release zip name is `CreedUi-*.zip` and the addon
+folder `CreedUI`. If the workflow's push is refused: Settings → Actions → General → Workflow
+permissions → Read and write.
 
 ## 3. Layout
 
@@ -34,21 +41,42 @@ CreedUI/            the addon (this folder name is the install folder; never ren
   Timer.lua         the boss timer (DON'T TOUCH unless asked: the user loves it; 1.14.2 made its rims and
                     sockets C.BRONZE and its gems red, asked for)
   Numbers.lua       floating damage numbers (combat text API)
+  Hurt.lua          damage taken as red numbers by the hero (new hits on AZS_TAKEN; the combat text
+                    API carries outgoing hits only), heals got as green ones (AZS_HEALING; 1.16.1)
   Bosses.lua        boss and mini-boss bars        Units.lua    player and target frames
-  Skulls.lua        a skull over each boss (horned, red eyes) and guardian (world anchors), sized by distance
-  Party.lua         party frames                   Chat.lua     dressed chat, kept clear of the dragon
+  Skulls.lua        a skull over each boss (horned, red eyes) and guardian, a gold chest over each cache
+                    (world anchors, kind `cache`; 1.15.0), sized by distance
+  Party.lua         party frames; right click: Inspect (InspectUnit), Follow (FollowUnit), Whisper
+                    (ChatFrame_SendTell, else the chat box with "/w Name"); 1.18.0                   Chat.lua     dressed chat, kept clear of the dragon; moved and sized while unlocked (db.place,
+                    the game's own kept as db.home; C.resetStamp tells it of a reset)
   Downed.lua        friends down: banner + sound, a revive mark on their spot, edge arrows (world anchors)
   LevelUps.lua      the Level Up! button for stored level-ups (replaces the game's "levels" HUD part)
   Summary.lua       the run's summary panel when it ends (AZS_GetRunSummary)
   Talents.lua       the talent window: trees side by side, learned talents with ranks (meter loadout)
+  Pets.lua          the pet bar over the skill bar's left end (1.15.0): the 1.12 pet buttons
+                    (GetPetActionInfo...) when the game fills them, else AZS_GetSummonGroups with the
+                    skills Meter.lua saw each summon use (C.petSkills, by summonKey), each with what it
+                    hits for (C.hitValues, from Numbers.lua's combat text events; 1.16.1). Faces by name (FACES);
+                    each pet's skills from the game's own descriptions (KNOWS, 1.16.2), shown only once
+                    their hits are seen (1.17.2, asked for: Kill Command, Bite showed nothing live); their tooltips
+                    (1.16.3) show the measured hits (C.hitValues: last, avg, low/high, crit, C.HitRate)
+                    and AZS_STATS.pet (the game exposes no pet damage formulas)
   Bar.lua           skill bar, each ability's rank box, jewelry, XP/s, the gold panel (C.PANEL_ROOM at each
                     end for its painted dragons, Core's C.Panel)
   Tally.lua         kills / gold / cache, docked inside the bar's panel
   Minimap.lua       metal ring, local clock, zone name
-  MinimapButton.lua C.EdgeButton (draggable round buttons on the minimap's edge) and the C button
+  MinimapButton.lua C.EdgeButton (a draggable round button on the minimap's edge): the C button only
   Chests.lua        caches and guardians' lairs as pins on the minimap
-  Meter.lua         damage meter (+ its crossed-swords edge button)
-  Luck.lua          luck medallion (+ its clover edge button)
+  Meter.lua         damage meter (shown or hidden from the options hub since 1.14.3)
+  Loot.lua          the loot pop-up (1.19.0, replacing 1.17's loot window, asked for): takes the game's
+                    `loot` HUD part and pops up each drop and each marks gain over the skill bar, read
+                    from the game's chat lines ("You receive loot: [Name] New in your collection!",
+                    "marks.earned"; all 14 languages, from the client's JSON) by wrapping each
+                    ChatFrame's AddMessage. No link, icon or rarity reach Lua (the game's own toast has
+                    them natively), so the icon is guessed from the name (LOOKS)
+  Luck.lua          luck medallion (shown or hidden from the options hub since 1.14.3)
+  TinyPlates.lua    nameplates (contributor JamieeLee, 1.14.3): based on Valorless's MIT-licensed
+  TinyPlatesOptions.lua  ASTinyPlates (TinyPlates-LICENSE.txt); its own panel from the hub's button
   Character.lua     the game's character window dressed: gear slots lit by rarity, the run's stats
                     read off the game's own labels and regrouped beside it; the Skills tab is called
                     Talents and opens Talents.lua's window (the game's own if that's missing); Honor hidden.
@@ -58,7 +86,8 @@ CreedUI/            the addon (this folder name is the install folder; never ren
 dev/                tools: stand-in game client + tests, translations, art, fonts, renderer
                     (dev/README.md explains each)
 dev/attic/          code kept for later (the 1.8.0 talents strip, the 1.11.0 talent-tree page)
-README.md, CHANGELOG.md
+README.md, CHANGELOG.md   (the top level holds only these, CLAUDE.md and the two folders; 1.17.3 removed an old
+                    1.14.0 copy of the addon that had been uploaded there by hand)
 ```
 
 ## 4. Rules the code depends on
@@ -110,7 +139,7 @@ README.md, CHANGELOG.md
   an error it turns itself off with a translated message.
 - Comments are plain English prose describing what the player sees. Keep that voice.
 - The options hub lays the parts out in two columns (the first half on the left) and grows 26 px
-  per two parts: at 22 parts it's 458 px tall. A test keeps it under 700 px.
+  per two parts: at 23 parts it's about 484 px tall. A test keeps it under 700 px.
 
 ## 5. Checking before shipping
 
@@ -118,8 +147,9 @@ Build Lua 5.0.3 (lua.org) and install Python 3 with numpy, Pillow, scipy, fontTo
 From `dev/`:
 
 ```
-lua50 cui/tests.lua . ../CreedUI                # 563 passed, 0 failed
-lua50 cui/timer_tests.lua . ../CreedUI          # 78 passed
+lua50 cui/tests.lua . ../CreedUI                # 610 passed, 0 failed
+lua50 cui/tiny_plates_tests.lua . ../CreedUI    # 35 passed
+lua50 cui/timer_tests.lua . ../CreedUI          # 82 passed
 lua50 cui/numbers_harness.lua . ../CreedUI/Numbers.lua   # ALL CHECKS PASSED (also with CROWD=1)
 lua50 cui/smoke.lua . ../CreedUI out            # problems: 0
 lua50 cui/globals.lua . ../CreedUI              # only this, event, arg1
@@ -202,11 +232,16 @@ before using an API. Known:
    matched), the summary's fields, the Level Up! button, Damage Taken. Ask for screenshots.
    Ideas not done yet: talent/summon timers (`AZS_GetTimers`), arrows to caches and lairs, the
    upcoming bosses (`AZS_GetUpcomingBosses`; ask first, the timer is the user's favorite).
-3. **The user's list, not done yet (2026-11-04):** read the game's latest major patch for needed changes;
-   a Scholomance theme for the timer; active skill counts (totems, blizzards...); the minimap's player
-   arrow over the pins; the pet bar showing its skills with tooltips; more damage number styles to pick
-   from; damage taken as scrolling text by the hero; every text fitting the options; the meter counting
-   echo, windfury and procs right.
+3. **The user's list, not done yet (2026-11-04):** the pet
+   bar (done in 1.15.0; not seen live: whether the game fills the 1.12 pet buttons); the meter counting
+   echo and procs right (since 0.141.0 the game files Windfury under Windfury Weapon and pet skills
+   under the pet; 1.14.3 puts every pet's and summon's skills on one Pet line, asked for).
+   Done in 1.16.0: number motions (Numbers.lua `STACK.motion`: Lua 5.0's 200-local limit is reached,
+   so new constants go in an existing table), active counts on the skill bar (Bar.lua `LASTS` by icon,
+   guessed durations, counted from cooldown restarts; totems from AZS_GetTotems), each hero's best
+   skill on Party DPS (a second snapshot, scope party, groupBy source).
+   Done in 1.14.3: Scholomance timer theme (zone key `scholomance`), damage taken by the hero
+   (Hurt.lua), pins fading under the minimap's arrow (no facing in the API to redraw it on top).
 4. **Talents (1.13.0):** the tab opens the game's window again (`ToggleTalentFrame()`, 1.14.2, asked
    for); `/creed talents` opens Talents.lua's: the meter loadout's `talents` (`sourceKey`, `rank`,
    `treeKey`, `specKey`; names and icons in `sources`), learned ones only. Tree names: the key's last

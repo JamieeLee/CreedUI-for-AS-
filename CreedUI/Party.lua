@@ -69,6 +69,94 @@ local function ClassFill(c, out)
 	return out
 end
 
+------------------------------------------------------------------------ the right-click menu
+-- A right click on a friend's frame opens a small gold-railed menu beside it, their name on top:
+-- Inspect (their gear, as the game's own window shows it), Follow, Whisper (the chat box opens
+-- with "/w Name" typed). It closes after a choice, on Escape, or when the mouse leaves it a while.
+local menu
+
+local function Whisper(name)
+	if type(ChatFrame_SendTell) == "function" then
+		Call(ChatFrame_SendTell, name)
+		return
+	end
+	local box = ChatFrameEditBox
+	if type(box) == "table" and box.SetText then
+		box:Show()
+		box:SetText("/w " .. name .. " ")
+		box:SetFocus()
+	end
+end
+
+local function Inspect(unit)
+	if type(CheckInteractDistance) == "function" and not Call(CheckInteractDistance, unit, 1) then
+		C.Print(C.L("Too far away to inspect."))
+		return
+	end
+	if type(InspectUnit) == "function" then
+		Call(InspectUnit, unit)
+	elseif type(NotifyInspect) == "function" then
+		Call(NotifyInspect, unit)
+	end
+end
+
+local function Follow(unit)
+	if type(FollowUnit) == "function" then Call(FollowUnit, unit) end
+end
+
+local function BuildMenu()
+	local m = CreateFrame("Frame", "CreedUIPartyMenu", UIParent)
+	menu = m
+	m:SetWidth(132)
+	m:SetHeight(104)
+	m:SetFrameStrata("DIALOG")
+	m:EnableMouse(true)
+	m.deco = C.Panel(m, false)
+	C.PanelTheme(m.deco, C.Pal())
+	m.title = C.Text(m, C.FONT, 12, "OUTLINE", "CENTER", 120)
+	m.title:SetPoint("TOP", m, "TOP", 0, -9)
+	m.title:SetTextColor(0.98, 0.85, 0.52)
+	local acts = {
+		{ "Inspect", function() Inspect(m.unit) end },
+		{ "Follow", function() Follow(m.unit) end },
+		{ "Whisper", function() Whisper(m.name) end },
+	}
+	m.buttons = {}
+	for i = 1, table.getn(acts) do
+		local act = acts[i][2]
+		local b = C.Button(m, 112, 20, "", function()
+			m:Hide()
+			if m.unit and Call(UnitExists, m.unit) then act() end
+		end)
+		C.LText(b.text, acts[i][1])
+		b:SetPoint("TOP", m, "TOP", 0, -28 - (i - 1) * 24)
+		m.buttons[i] = b
+	end
+	m:SetScript("OnUpdate", function()
+		-- away from it for a moment: it closes
+		if MouseIsOver and MouseIsOver(m) then
+			m.away = 0
+		else
+			m.away = (m.away or 0) + (arg1 or 0)
+			if m.away > 2.5 then m:Hide() end
+		end
+	end)
+	if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, "CreedUIPartyMenu") end -- Escape closes it
+	m:Hide()
+end
+
+local function OpenMenu(f, unit)
+	if not menu then BuildMenu() end
+	local name = Call(UnitName, unit)
+	if not name then return end
+	menu.unit, menu.name, menu.away = unit, name, 0
+	menu.title:SetText(name)
+	menu:ClearAllPoints()
+	menu:SetPoint("TOPLEFT", f, "TOPRIGHT", 6, 0)
+	menu:Show()
+	if GameTooltip then GameTooltip:Hide() end
+end
+
 ------------------------------------------------------------------------ a row
 local function NewRow(i)
 	local unit = "party" .. i
@@ -78,9 +166,14 @@ local function NewRow(i)
 	f:SetWidth(ROW_W)
 	f:SetHeight(ROW_H)
 	f:EnableMouse(true)
-	f:RegisterForClicks("LeftButtonUp")
+	f:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 	f:SetScript("OnClick", function()
-		if Call(UnitExists, unit) then Call(TargetUnit, unit) end
+		if not Call(UnitExists, unit) then return end
+		if arg1 == "RightButton" then
+			OpenMenu(f, unit) -- Inspect, Follow, Whisper
+		else
+			Call(TargetUnit, unit)
+		end
 	end)
 	f:SetScript("OnEnter", function()
 		if GameTooltip and Call(UnitExists, unit) then

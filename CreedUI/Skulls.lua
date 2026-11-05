@@ -4,18 +4,20 @@
 -- unit is on the screen, without a target or a nameplate: the game's world anchors say where each
 -- stands and where that spot falls on the screen this frame. A near one's skull is large, a far
 -- one's small, within limits. It fades in when the unit comes and out when it falls; the final
--- boss's glow is gold.
+-- boss's glow is gold. Every cache waiting on the field wears a gold chest in a gold glow, so one
+-- that drops is easy to find.
 
 local C = CreedUI
 local DEFAULTS = { enabled = true, scale = 1 }
-local QUERY = { kinds = { "boss", "finalBoss", "guardian" } }
+local QUERY = { kinds = { "boss", "finalBoss", "guardian", "cache" } }
+local CACHE = { lift = 2.2, size = 0.62, glow = { 0.95, 0.79, 0.44 } } -- yards over the cache; its size against a boss skull's
 local GUARD_SIZE = 0.68     -- a guardian's skull, against a boss's at the same distance (as it was)
 local LIST_EVERY = 0.5      -- how often the list of bosses is read again
 local LIFT = 1.2            -- yards over the head
 local FEET_LIFT = 5         -- yards over the feet, for a boss the game can't find the head of
 local WIDTH_YARDS = 1.92    -- the skull's width, in the world (a fifth bigger than at first, asked for)
 local MIN_PX, MAX_PX = 26, 77
-local MAX_SKULLS = 8
+local MAX_SKULLS = 16
 local GONE = { dead = true, removed = true, departed = true, collected = true, expired = true, unavailable = true }
 local LOST = { unknownAnchor = true, expired = true, worldChanged = true }
 local GLOW_BOSS, GLOW_FINAL, GLOW_GUARD = { 0.95, 0.12, 0.06 }, { 1.00, 0.72, 0.20 }, { 1.00, 0.55, 0.12 }
@@ -48,8 +50,8 @@ local function ReadList()
 			local e = entries[i]
 			local state = e and (e.entityState or e.state) or "alive"
 			if type(e) == "table" and type(e.anchorId) == "string" and not GONE[state] and table.getn(out) < MAX_SKULLS
-				and (e.kind == "boss" or e.kind == "finalBoss" or (e.kind == "guardian" and not ASLEEP[state])) then
-				table.insert(out, { id = e.anchorId, final = e.kind == "finalBoss", guardian = e.kind == "guardian" })
+				and (e.kind == "boss" or e.kind == "finalBoss" or e.kind == "cache" or (e.kind == "guardian" and not ASLEEP[state])) then
+				table.insert(out, { id = e.anchorId, final = e.kind == "finalBoss", guardian = e.kind == "guardian", cache = e.kind == "cache" })
 			end
 		end
 		if res.hasMore and type(res.nextCursor) == "string" then
@@ -132,7 +134,9 @@ local function Project(ratio)
 		end
 		local m = Marker(item.id)
 		r.anchorId = item.id
-		if m.feet then
+		if item.cache then
+			r.attachment, r.offset.z = "position", CACHE.lift
+		elseif m.feet then
 			r.attachment, r.offset.z = "position", FEET_LIFT
 		else
 			r.attachment, r.offset.z = "overhead", LIFT
@@ -183,17 +187,25 @@ local function Draw(now, dt)
 			local size = math.floor(m.size + 0.5)
 			local bob = math.sin(now * 1.6 + m.bob) * 2
 			local guardian = item and item.guardian
-			if m.art ~= (guardian and 1 or 2) then
-				m.art = guardian and 1 or 2
-				m.skull:SetTexture(C.ART .. (guardian and "BossSkull" or "BossSkullFierce"))
+			local cache = item and item.cache
+			local art = (cache and 3) or (guardian and 1) or 2
+			if m.art ~= art then
+				m.art = art
+				m.skull:SetTexture(C.ART .. ((cache and "Chest") or (guardian and "BossSkull") or "BossSkullFierce"))
+				if cache then
+					m.skull:SetVertexColor(CACHE.glow[1], CACHE.glow[2], CACHE.glow[3])
+				else
+					m.skull:SetVertexColor(1, 1, 1)
+				end
 			end
 			if guardian then size = math.floor(size * GUARD_SIZE + 0.5) end
+			if cache then size = math.floor(size * CACHE.size + 0.5) end
 			C.Size(m.skull, size, size)
 			C.Size(m.eyes, size, size)
-			C.Vis(m.eyes, not guardian)
-			if not guardian then C.Alpha(m.eyes, 0.88 + 0.12 * math.sin(now * 2.6 + m.bob)) end
+			C.Vis(m.eyes, art == 2)
+			if art == 2 then C.Alpha(m.eyes, 0.88 + 0.12 * math.sin(now * 2.6 + m.bob)) end
 			C.Size(m.glow, size * 2.1, size * 2.1)
-			local tint = (guardian and GLOW_GUARD) or (item and item.final and GLOW_FINAL) or GLOW_BOSS
+			local tint = (cache and CACHE.glow) or (guardian and GLOW_GUARD) or (item and item.final and GLOW_FINAL) or GLOW_BOSS
 			C.Color(m.glow, tint[1], tint[2], tint[3], 0.55 + 0.15 * math.sin(now * 2.2 + m.bob))
 			C.Place(m.frame, "CENTER", WorldFrame, "BOTTOMLEFT", math.floor(m.x * 10 + 0.5) / 10,
 				math.floor((m.y + size * 0.5 + bob) * 10 + 0.5) / 10)
@@ -369,7 +381,7 @@ end)
 
 C.RegisterPart({
 	key = "skulls", name = "Boss skulls",
-	note = "A skull over each boss, wherever it is on the screen: large when it is near, small when it is far. Not over mini-bosses.",
+	note = "A skull over each boss and awake guardian, and a gold chest over each cache, wherever they are on the screen: large when near, small when far.",
 	get = function() return db and db.enabled end,
 	set = function(on) if db then SetEnabled(on) end end,
 	getScale = function() return db and db.scale or 1 end,

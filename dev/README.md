@@ -61,6 +61,8 @@ fonts are stood in for by system ones (`bt/render_bt.py`).
 
 ## Art
 
+- `art/make_icon.py <dir>` draws Creed UI's icon (for the addon page and listings) as icon-512/256/128.png; the drawn ones are in `art/icon/`.
+
 All of Creed UI's art is original and drawn by these scripts (numpy and Pillow), written as BLP2
 (uncompressed) with PNG copies: `python3 art/make_artN.py <blp folder> <png folder>`. Each script's
 first lines say what it draws; later ones replace earlier ones where they share a name.

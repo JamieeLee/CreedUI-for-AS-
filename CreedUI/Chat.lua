@@ -3,7 +3,8 @@
 -- (click it to come back down). A soft glass fades in behind the lines while the mouse is over
 -- them or you type, and the typing box gets the boss timer's glass and metal lines. A window that
 -- would reach under the skill bar's left dragon stops short of it. Turning this part off puts the
--- game's chat back as it was.
+-- game's chat back as it was. With the frames unlocked (a right click on the C), a "Chat" box
+-- lies over it: drag it to move the chat, drag its corner grip to size it; both are kept.
 
 local C = CreedUI
 local DEFAULTS = { enabled = true }
@@ -230,6 +231,74 @@ local function ClearAll(on)
 	end
 end
 
+------------------------------------------------------------------------ moved and sized by hand
+-- The chat's place and size as you left them ({ x, y, w, h }, its bottom left in UIParent), and
+-- where the game had it, kept too, so turning the part off or resetting the frames gives it back.
+local function Home(f)
+	if db.home then return end
+	db.home = { x = f:GetLeft(), y = f:GetBottom(), w = f:GetWidth(), h = f:GetHeight() }
+end
+
+local function Place(f, p)
+	f:ClearAllPoints()
+	f:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", p.x, p.y)
+	f:SetWidth(p.w)
+	f:SetHeight(p.h)
+	f.creedW, f.creedSetW = nil, nil -- sized by hand: that's the width it keeps clear with
+end
+
+local function GoHome(f)
+	if type(f) ~= "table" or not db.home then return end
+	Place(f, db.home)
+	db.home = nil
+end
+
+local function SavePlace(f)
+	f:StopMovingOrSizing()
+	db.place = { x = f:GetLeft(), y = f:GetBottom(), w = f:GetWidth(), h = f:GetHeight() }
+	Place(f, db.place) -- held by one point from now on, as it was left
+end
+
+local function BuildMover()
+	local chat = getglobal("ChatFrame1")
+	if W.mover or type(chat) ~= "table" then return end
+	local m = CreateFrame("Frame", "CreedUIChatMover", UIParent)
+	W.mover = m
+	m:SetAllPoints(chat)
+	m:SetFrameStrata("DIALOG")
+	m:SetBackdrop({ bgFile = C.FLAT, edgeFile = C.FLAT, edgeSize = 1, insets = { left = 1, right = 1, top = 1, bottom = 1 } })
+	m:SetBackdropColor(0.1, 0.2, 0.4, 0.35)
+	m:SetBackdropBorderColor(0.91, 0.70, 0.30, 0.8)
+	m:EnableMouse(true)
+	m:RegisterForDrag("LeftButton")
+	m:SetScript("OnDragStart", function()
+		Home(chat)
+		chat:SetMovable(true)
+		chat:StartMoving()
+	end)
+	m:SetScript("OnDragStop", function() SavePlace(chat) end)
+	m.text = C.Text(m, C.FONT, 11, "OUTLINE", "CENTER", 200)
+	m.text:SetPoint("CENTER", m, "CENTER", 0, 0)
+	m.text:SetTextColor(0.98, 0.85, 0.52)
+	C.LText(m.text, "Chat")
+	-- the corner grip: drag it to size the window
+	local g = CreateFrame("Button", "CreedUIChatGrip", m)
+	m.grip = g
+	g:SetWidth(16)
+	g:SetHeight(16)
+	g:SetPoint("BOTTOMRIGHT", m, "BOTTOMRIGHT", 0, 0)
+	g.tex = C.Tex(g, "OVERLAY", "Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+	g.tex:SetAllPoints(g)
+	g:SetScript("OnMouseDown", function()
+		Home(chat)
+		chat:SetResizable(true)
+		chat:SetMinResize(200, 80)
+		chat:StartSizing("BOTTOMRIGHT")
+	end)
+	g:SetScript("OnMouseUp", function() SavePlace(chat) end)
+	m:Hide()
+end
+
 ------------------------------------------------------------------------ on and off
 local function Apply()
 	Build()
@@ -253,6 +322,16 @@ local function Apply()
 	end
 	if on then C.HideStock("ChatFrameMenuButton") else C.RestoreStock("ChatFrameMenuButton") end
 	DressInput(on)
+	BuildMover()
+	local chat = getglobal("ChatFrame1")
+	if type(chat) == "table" then
+		if on and db.place then
+			Home(chat)
+			Place(chat, db.place)
+		elseif not on then
+			GoHome(chat)
+		end
+	end
 	ClearAll(on)
 	S.applied = on
 	if not on then
@@ -280,6 +359,20 @@ end
 
 ------------------------------------------------------------------------ every frame
 local function Step(dt)
+	if W.mover then
+		local want = (db.enabled and C.unlocked) and true or false
+		if want ~= (W.mover:IsShown() and true or false) then
+			if want then W.mover:Show() else W.mover:Hide() end
+		end
+	end
+	-- the frames' places reset: the chat goes back to the game's
+	if S.resetSeen ~= C.resetStamp then
+		if S.resetSeen ~= nil and db.place then
+			db.place = nil
+			GoHome(getglobal("ChatFrame1"))
+		end
+		S.resetSeen = C.resetStamp
+	end
 	if not (db.enabled and S.applied and W.glass) then return end
 	local pal = C.Pal()
 	if S.stamp ~= C.palStamp then

@@ -378,3 +378,104 @@ What this run plays with
 Your talents show here during a run.
 No talents learned yet.
 the talent window stopped after an error: 
+What hits you rises beside your hero as red numbers, heavier blows bigger.
+the damage you take stopped showing after an error: 
+Scholomance
+Pet
+Language
+Tiny Plates
+Tiny Plates settings
+Half-size regular nameplates, with full-size boss and guardian plates.
+Creed UI nameplates stopped after an error: 
+Creed UI nameplate debuff update stopped after an error: 
+Boss & guardian plates
+Show debuffs
+Show boss and guardian debuffs, stack counts and remaining time.
+Hide boss / guardian names
+Hide the name label above special plates.
+Regular plates
+Hide regular plates
+Hide ordinary mob plates entirely. Requires overlapping nameplates.
+Show names on nameplates
+Show each regular mob name above its shrunken plate.
+Health display
+Show health numbers
+Show current / maximum health numbers inside each plate. The colored health bars remain visible either way.
+Custom bar color
+Use your own color instead of the game's health-bar color.
+Boss / guardian health color
+Regular health color
+Blue
+Orange
+Sky blue
+Vermillion
+Yellow
+Pink
+Damage Done, Healing Done, Boss Damage and Party DPS with icons, per second and shares; Reset counts again in this window only. Drag the title to move it, the corner to resize. Use the Damage meter toggle in Creed UI Options to show or hide it; while enabled, it replaces the game's meter window.
+Your luck on a bronze medallion, and the chance of a Rare, Epic or Legendary card as three gems (1 in N); luck you gain shows on the medallion. Drag its sides to widen it, its corners to size it; use the Luck toggle in Creed UI Options to show or hide the window.
+Pet bar
+Over the skill bar on the left: your pet's own buttons (click to use, right-click for autocast), or each kind of summon you have out with its count, time left and the skills it has used.
+{1} out
+{1} s left
+Its skills show here once it uses them.
+the pet bar stopped after an error: 
+A skull over each boss and awake guardian, and a gold chest over each cache, wherever they are on the screen: large when near, small when far.
+Motion
+motion: 
+/creed numbers smooth, fountain, rise or impact - how the numbers move
+Smooth
+Fountain
+Rise
+Impact
+Numbers drift up gently and melt away.
+Numbers arc up and fall away to the side.
+Numbers scroll straight up, quickly.
+Numbers punch in big and stay put; crits shake.
+Hits for
+Usually
+Its value shows once it hits.
+What hits you rises beside your hero as red numbers, heavier blows bigger; the health you get back rises in green on the other side.
+Melee
+Bite
+Kill Command
+Bestial Wrath
+Raptor Strike
+Frostbolt
+Firebolt
+Shadow Cleave
+Cleave
+Hellfire
+Shadow Bolt
+Range
+Crits for
+Hits per second
+Pet Damage
+Its own swings at the enemy in front of it.
+Bites the enemy you attack.
+Sends each pet charging at its own target, bosses and elites first.
+Its bites strike 5 more enemies for 150% damage each.
+Strikes three times in quick succession.
+Hurls Frostbolts at your enemies.
+Hurls bolts of fire at your enemies.
+Hits 2 enemies at once.
+Cleaves up to 10 enemies; every third swing deals double damage.
+Burns the enemies around it.
+Hurls Shadow Bolts at your enemies.
+Loot
+Nothing yet this run.
+and {1} more
+The run's loot in a small window: its gold and caches, then every item you received, newest first, with its icon and rarity. Point at one for its tooltip.
+the loot window stopped after an error: 
+{1} in all
+The run's loot in a small window: the marks you earned, then the gear that dropped for you, newest first, with its icon and rarity. Point at one for its tooltip.
+Inspect
+Follow
+Whisper
+Too far away to inspect.
+New
+New in your collection!
+Already in your collection.
+Marks
++{1} marks
+Your own loot pop-up in Creed UI's look: each drop with its icon, its name and whether it's new to your collection, and the marks you earn. Replaces the game's pop-up.
+the loot pop-up stopped after an error, so the game's own is back: 

@@ -139,6 +139,13 @@ local function HideFrom(first)
 	for i = first, table.getn(W.pins) do C.Vis(W.pins[i], false) end
 end
 
+-- A pin over the middle of the map would hide the game's arrow (you): there it fades to a ghost.
+local CLEAR_NEAR, CLEAR_FAR, CLEAR_ALPHA = 5, 14, 0.22
+local function Clear(d)
+	if d >= CLEAR_FAR then return 1 end
+	return CLEAR_ALPHA + (1 - CLEAR_ALPHA) * C.Smooth((d - CLEAR_NEAR) / (CLEAR_FAR - CLEAR_NEAR))
+end
+
 -- a pin at its cache, or on the rim toward it; it glows while your gold pays, and rings as it drops
 local function Place(p, c, hx, hy, ppy, reach, pays, now)
 	local east, north = hy - c.y, c.x - hx
@@ -151,7 +158,7 @@ local function Place(p, c, hx, hy, ppy, reach, pays, now)
 	end
 	C.Place(p, "CENTER", W.layer, "CENTER", math.floor(ox * 10 + 0.5) / 10, math.floor(oy * 10 + 0.5) / 10)
 	C.Size(p, size, size)
-	C.Alpha(p, alpha)
+	C.Alpha(p, alpha * Clear(d))
 	if pays then
 		C.Size(p.glow, size * 2.4, size * 2.4)
 		C.Vis(p.glow, true)
@@ -282,7 +289,7 @@ local function PlaceLair(p, c, hx, hy, ppy, reach, now)
 	local look = LAIR_LOOK[c.state] or LAIR_LOOK.empty
 	C.Color(p.base, look.base[1], look.base[2], look.base[3], 1)
 	C.Color(p.icon, look.icon[1], look.icon[2], look.icon[3], 1)
-	C.Alpha(p, look.alpha * (edge and 0.85 or 1))
+	C.Alpha(p, look.alpha * (edge and 0.85 or 1) * Clear(d))
 	-- awake: a red throb
 	if c.state == "awake" then
 		C.Size(p.glow, size * 2.6, size * 2.6)

@@ -1,6 +1,54 @@
 # Changelog
 
+## 1.19.0
+- **Loot pop-up instead of the loot window.** When the game gives you loot, a Creed UI pop-up rises in over the skill bar in place of the game's own: the item's icon in a metal slot, its name, and whether it's new to your collection (in green) or one you already had. Marks you earn pop up too, on an Argent Dawn token, with how many you have in all. Up to three stack, and each melts away after a few seconds. The loot window is gone; turning the Loot part off brings back the game's own pop-up.
+
+## 1.18.1
+- **Loot window: an icon for every drop.** The game's loot line names the item but doesn't say what it looks like, so each one gets an icon by what it is (boots, a helm, a ring, a sword...), or its own when the game gives it. Its name shows without brackets, and gear new to your collection gets a green **New** tag (its tooltip says which are new and which you already had).
+
+## 1.18.0
+- **Party frames: right-click menu.** A right click on a friend's frame opens a small menu beside it with their name: **Inspect** (their gear, in the game's own window; it says so when they're too far away), **Follow**, and **Whisper** (the chat box opens with "/w Name" typed). A left click still targets them.
+
+## 1.17.3
+- **Loot window: marks and boss gear only.** Its head shows the marks you earned this run on an Argent Dawn token, and how many you have in all; the gold and caches are gone. Below, the gear that dropped for you. Both are read from the game's own lines in the chat, in any of its languages (someone typing the same words doesn't count).
+
+## 1.17.2
+- **Pet bar: only skills with a real value.** A pet's skill shows once its hits are seen, with what it hits for; one whose damage the game doesn't report on its own (Bestial Wrath, and any the game folds into another skill) no longer sits there empty.
+- **Hit values kept apart:** each hit now counts toward the skill the game's meter puts it under, so two skills can't share one value.
+
+## 1.17.1
+- **Move and size the chat:** with the frames unlocked (right-click the C on the minimap), a Chat box lies over the chat: drag it to move the chat, drag its corner grip to make it wider, narrower, taller or shorter. Its place and size are kept; resetting the frames puts the game's back.
+- **Move the hero's numbers:** the spot the damage-taken and heal numbers rise from is now a box you can drag too, like every other part.
+
+## 1.17.0
+- **Loot window** (new part): the run's loot beside the damage meter. The gold you picked up and the caches you opened at its head, then every item you received, newest first, with its icon, its name in its rarity's color, how many, and the moment of the run it came. Point at one for the item's own tooltip. It starts empty each run and keeps the last run's after it ends. Its x closes it; the Loot toggle in the options brings it back.
+
+## 1.16.3
+- **Kill Command on the pet bar:** its hits now register under it (the game names them by the skill's key, not its name), so its value and tooltip fill in like the others'.
+- **Pet skill tooltips:** point at a pet's skill for what it does and its damage as it is now: what it just hit for, what it usually hits for, its lowest to highest hit, its last crit, its hits per second, and your Pet Damage bonus. The numbers come from its own hits, so they already carry your stats, gear and buffs, and change as soon as those do.
+
+## 1.16.2
+- **Pet bar: what each pet can do, from the start.** Every pet shows its skills as soon as it's out, as the game describes them: the Wolf's Bite, the Raptor's Raptor Strike, Kill Command and Bestial Wrath for the hunter's beasts, the Imp's Firebolt, the Voidwalker's Shadow Cleave, the Felguard's Cleave, the Infernal's Hellfire, the Doomguard's Shadow Bolt, the Water Elemental's Frostbolt, and Melee for those that fight in close. Each one's hit value fills in under it once it lands; any other skill the meter sees a pet use is added after.
+
+## 1.16.1
+- **Heals received:** the health you get back (heals, life drained) now rises beside your hero too, as green "+" numbers on the other side from the red damage ones. Part of Damage taken, so the same switch turns both off.
+- **Pet bar faces:** each summon shows its own picture by its name: a wolf for the Wolf, a raptor for the Raptor, the Spirit Wolf, Imp, Voidwalker, Infernal, Doomguard, Water Elemental and Treant their own, and every hunter beast family (cat, bear, owl, gorilla, scorpid, turtle...) theirs.
+- **Pet skills show their value:** under each pet skill, what it hits for now (its last plain hit), and on its tooltip that and what it usually hits for, instead of the damage it has added up. Read from the hits the damage numbers see, so they need the damage numbers on.
+
+## 1.16.0
+- **Damage numbers: four ways to move.** A new Motion row in the numbers' options (or `/creed numbers smooth|fountain|rise|impact`). **Smooth** is the gentle drift so far. **Fountain** arcs each number up and lets it fall away to the side. **Rise** scrolls them straight up, quickly. **Impact** punches them in big and keeps them in place, crits shaking.
+- **Active skill counts:** a gold number on a skill's slot says how many are out at once: totems standing (the game's own count) and spells still burning on the ground (Blizzard, Flamestrike, Rain of Fire, Consecration, Hurricane, Hellfire, Volley, Frost and Immolation Traps).
+- **Damage meter, Party DPS:** each hero's line shows their best skill in a tag, its damage per second on the tooltip.
+
+## 1.15.0
+- **Pet bar** (new part): just over the skill bar on its left. When the game gives your pet its own buttons, they're here: click to use, right-click to switch autocast, point at one for the game's tooltip, with a dark veil while it cools down. Otherwise each kind of summon you have out (Spirit Wolves, Treants, an Infernal...) shows its face, how many there are, the seconds left, and the skills you've seen it use, each with its damage on its tooltip.
+- **Caches marked in the world:** every cache on the field wears a gold chest in a gold glow, so one that drops is easy to find. It fades once taken. (Part of Boss skulls, so the same toggle turns it off.)
+
 ## 1.14.3
+- **Scholomance** (the game's 0.140.0 zone): the boss timer has its own look there, bone and ghostly green, and knows its five bosses (Kirtonos the Herald, Ras Frostwhisper, Doctor Theolen Krastinov, Lord Alexei Barov, Darkmaster Gandling) even right after a /reload.
+- **Damage meter:** every pet's and summon's skills (a hunter's Kill Command, a wolf's bite, an Infernal's Immolation...) are counted together on one **Pet** line. Point at it to see its best skill. Totems keep their own lines.
+- **Damage taken** (new part): what hits you rises beside your hero as red numbers, blows a split second apart gathered into one, heavier ones bigger. It hides behind the level-up cards and can be turned off in the options.
+- **Minimap:** a cache or lair pin right where you stand fades to a ghost, so the game's arrow (you) shows through it.
 - **Tiny Plates:** regular enemy plates use compact half-size Arcane-derived layered health bars and Creed UI typography; bosses and guardians keep full-size plates with the same styling and their debuffs below. Health numbers have an independent toggle, and disabling Tiny Plates restores the game's native plates and V-key visibility behavior.
 - **One minimap button:** the separate Luck clover and Damage Meter swords are removed. The Creed C and the central options hub remain; Luck and the damage meter are shown or hidden from the hub, without extra minimap buttons.
 

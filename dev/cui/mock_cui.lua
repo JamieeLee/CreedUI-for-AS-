@@ -619,6 +619,8 @@ GameTooltip = {
 		M.tip.lines = { text }
 	end,
 	SetAction = function(self, slot) M.tip.lines = { "Action " .. tostring(slot) }; M.tip.action = slot end,
+	SetHyperlink = function(self, link) M.tip.lines = { "Item " .. tostring(link) }; M.tip.link = link end,
+	SetPetAction = function(self, slot) M.tip.lines = { "Pet action " .. tostring(slot) }; M.tip.petAction = slot end,
 	SetInventoryItem = function(self, unit, slot) M.tip.lines = { "Item in slot " .. tostring(slot) }; M.tip.inv = slot end,
 	SetUnit = function(self, unit) M.tip.lines = { "Unit " .. tostring(unit) }; M.tip.unit = unit end,
 	SetTalent = function(self, tab, i) M.tip.lines = { "Talent " .. tostring(tab) .. "." .. tostring(i) } end,
@@ -730,6 +732,8 @@ local function InstallAPI()
 			if not cp then return nil, { code = "CHECKPOINT_EXPIRED" } end
 		end
 		local list = M.meter[which] or {}
+		local bySkill = which == "party" and q.groupBy == "source" -- each hero's skills: M.meter.partySkills { owner, key, name, icon, amount }
+		if bySkill then list = M.meter.partySkills or {} end
 		local snap = { apiVersion = 1, status = "ready", complete = true, context = AZS_GetMeterContext(), rows = {}, sources = {},
 			actors = {}, contributions = {}, totals = {} }
 		local total = 0
@@ -742,7 +746,10 @@ local function InstallAPI()
 				local row = { rowId = rowId, displayAmount = amount, periodAmount = l.amount, memberIds = { "c" .. i }, nativeProc = l.proc,
 					periodAverage = { status = "ready", value = amount / 100 }, displayRate = { status = "ready", value = amount / 100 } }
 				if cp then row.checkpointAverage = { status = "ready", value = amount / 50 } end
-				if which == "party" then
+				if bySkill then
+					row.ownerId, row.sourceKey = l.owner, l.key
+					snap.sources[l.key] = { sourceKey = l.key, name = l.name, icon = l.icon and { status = "ready", path = l.icon } or { status = "missing" } }
+				elseif which == "party" then
 					row.ownerId = l.key
 					snap.actors[l.key] = { actorId = l.key, kind = "hero", name = l.name, classKey = l.class,
 						portrait = { portraitKey = "pk" .. i, status = "ready" } }
@@ -876,8 +883,8 @@ function M.Frame(dt)
 	end
 end
 
-M.files = { "Core.lua", "Locale.lua", "Locale_zh.lua", "Locale_ru.lua", "Locale_ja.lua", "Locale_ko.lua", "Locale_pl.lua", "Locale_tr.lua", "Timer.lua", "Numbers.lua", "Bosses.lua", "Skulls.lua", "Units.lua", "Party.lua", "Downed.lua", "Bar.lua", "Tally.lua", "LevelUps.lua", "Minimap.lua", "MinimapButton.lua",
-	"Chests.lua", "Meter.lua", "Luck.lua", "Summary.lua", "Character.lua", "Talents.lua", "Chat.lua" }
+M.files = { "Core.lua", "Locale.lua", "Locale_zh.lua", "Locale_ru.lua", "Locale_ja.lua", "Locale_ko.lua", "Locale_pl.lua", "Locale_tr.lua", "Timer.lua", "Numbers.lua", "Hurt.lua", "Bosses.lua", "Skulls.lua", "Units.lua", "Party.lua", "Downed.lua", "Bar.lua", "Pets.lua", "Tally.lua", "LevelUps.lua", "Minimap.lua", "MinimapButton.lua",
+	"Chests.lua", "Meter.lua", "Luck.lua", "Loot.lua", "Summary.lua", "Character.lua", "Talents.lua", "Chat.lua" }
 function M.Load(dir)
 	for i = 1, table.getn(M.files) do
 		local chunk, err = loadfile(dir .. "/" .. M.files[i])
@@ -1059,6 +1066,33 @@ function GetInventoryItemTexture(unit, slot) return M.gear[slot] and M.gear[slot
 function GetInventoryItemQuality(unit, slot) return M.gear[slot] and M.gear[slot].q or nil end
 function GetInventoryItemLink(unit, slot) return M.gear[slot] and M.gear[slot].link or nil end
 function GetInventoryItemCooldown(unit, slot) return 0, 0, 1 end
+-- a party member's menu: what was asked, in M.asked
+M.asked = {}
+M.farAway = {}
+function InspectUnit(u) table.insert(M.asked, "inspect " .. tostring(u)) end
+function FollowUnit(u) table.insert(M.asked, "follow " .. tostring(u)) end
+function CheckInteractDistance(u, d) return not M.farAway[u] end
+-- items by id: M.items[id] = { name, quality, icon }
+function GetItemInfo(id)
+	local it = M.items and M.items[tonumber(id) or id]
+	if not it then return nil end
+	return it.name, "item:" .. tostring(id), it.quality, 1, "Armor", "Misc", 1, "", it.icon
+end
+-- the 1.12 pet bar: M.petActions = { { name, icon, token, active, autoAllowed, auto, cdStart, cdDur }, ... } (nil: no pet bar)
+M.petCast = {}
+function PetHasActionBar() return M.petActions ~= nil end
+function GetPetActionInfo(i)
+	local a = M.petActions and M.petActions[i]
+	if not a then return nil end
+	return a.name, nil, a.icon, a.token, a.active, a.autoAllowed, a.auto
+end
+function GetPetActionCooldown(i)
+	local a = M.petActions and M.petActions[i]
+	if not a then return 0, 0, 1 end
+	return a.cdStart or 0, a.cdDur or 0, 1
+end
+function CastPetAction(i) table.insert(M.petCast, "cast " .. tostring(i)) end
+function TogglePetAutocast(i) table.insert(M.petCast, "auto " .. tostring(i)); local a = M.petActions and M.petActions[i]; if a then a.auto = not a.auto end end
 M.loaded = {}
 function IsAddOnLoaded(name) return M.loaded[name] and 1 or nil end
 M.cvars = { CombatDamage = "1" }
@@ -1198,6 +1232,13 @@ local function WACatalog()
 		if d.anchorId then
 			table.insert(out, { anchorId = d.anchorId, kind = "downedPartyMember", name = d.name, entityState = "downed",
 				attachments = { "position" }, positionAvailable = true, x = d.wx or 0, y = d.wy or 0, z = 0 })
+		end
+	end
+	if type(AZS_CHESTS) == "table" then
+		for i = 1, table.getn(AZS_CHESTS) do
+			local c = AZS_CHESTS[i]
+			table.insert(out, { anchorId = "cache:" .. tostring(c.id), kind = "cache", entityState = c.taken and "collected" or "available",
+				attachments = { "position" }, positionAvailable = true, x = 12 + 6 * i, y = -10, z = 0, cacheId = c.id })
 		end
 	end
 	for i = 1, table.getn(M.guardians or {}) do

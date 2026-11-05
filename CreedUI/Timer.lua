@@ -126,6 +126,13 @@ local THEMES = {
 		glow = { 1.00, 0.78, 0.36 }, gem = { 0.82, 0.44, 1.00 }, trough = { 0.06, 0.02, 0.00 },
 		motif = "embers", mc = { 1.00, 0.56, 0.16 },
 	},
+	scholomance = {
+		name = "Scholomance", sub = "The Great Ossuary",
+		title = { 0.86, 0.96, 0.78 }, rim = { 0.80, 0.82, 0.74 },
+		fillA = { 0.06, 0.12, 0.08 }, fillM = { 0.26, 0.48, 0.30 }, fillB = { 0.84, 0.94, 0.70 },
+		glow = { 0.82, 1.00, 0.78 }, gem = { 0.70, 1.00, 0.46 }, trough = { 0.02, 0.04, 0.03 },
+		motif = "mist", mc = { 0.66, 0.96, 0.62 },
+	},
 	aq = {
 		name = "Gates of Ahn'Qiraj", sub = "The Old God Stirs",
 		title = { 1.00, 0.88, 0.56 }, rim = { 0.92, 0.80, 0.56 },
@@ -141,7 +148,7 @@ local THEMES = {
 		motif = "necrotic", mc = { 0.52, 1.00, 0.62 },
 	},
 }
-local ZONE_ORDER = { "elwynn", "duskwood", "wsg", "ungoro", "ab", "feralas", "arena", "sm", "av", "brm", "aq", "naxx" }
+local ZONE_ORDER = { "elwynn", "duskwood", "wsg", "ungoro", "ab", "feralas", "arena", "sm", "av", "brm", "scholomance", "aq", "naxx" }
 local PAL_KEYS = { "title", "rim", "fillA", "fillM", "fillB", "glow", "gem", "trough", "mc" }
 
 -- Each zone's bosses, used when the game hasn't sent the schedule (right after a /reload).
@@ -157,6 +164,7 @@ local FALLBACK = {
 	sm = { 1080, 240, "Houndmaster Loksey", 420, "Arcanist Doan", 660, "Herod", 840, "Scarlet Commander Mograine", 1080, "High Inquisitor Whitemane" },
 	av = { 1200, 240, "Korrak the Bloodrager", 480, "Ivus the Forest Lord", 720, "Lokholar the Ice Lord", 960, "Glacius the Frozen Titan", 1200, "Azuregos" },
 	brm = { 1200, 240, "General Angerforge", 480, "Warchief Rend Blackhand", 720, "Emperor Dagran Thaurissan", 960, "Majordomo Executus", 1200, "Nefarian" },
+	scholomance = { 1200, 240, "Kirtonos the Herald", 480, "Ras Frostwhisper", 720, "Doctor Theolen Krastinov", 960, "Lord Alexei Barov", 1200, "Darkmaster Gandling" },
 	aq = { 1200, 240, "Kurinnaxx", 480, "General Rajaxx", 720, "Princess Huhuran", 960, "Ossirian the Unscarred", 1200, "C'Thun" },
 	naxx = { 1200, 240, "Anub'Rekhan", 480, "Noth the Plaguebringer", 720, "Patchwerk", 960, "Sapphiron", 1200, "Kel'Thuzad" },
 }

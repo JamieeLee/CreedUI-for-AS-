@@ -16,6 +16,7 @@ SIM.ZONES = {
 	av = { "Alterac Valley", "The Frozen Wilds", 1200, { 240, "Korrak the Bloodrager", 480, "Ivus the Forest Lord", 720, "Lokholar the Ice Lord", 960, "Glacius the Frozen Titan", 1200, "Azuregos" } },
 	brm = { "Blackrock Mountain", "The Lord of Blackrock", 1200, { 240, "General Angerforge", 480, "Warchief Rend Blackhand", 720, "Emperor Dagran Thaurissan", 960, "Majordomo Executus", 1200, "Nefarian" } },
 	aq = { "Gates of Ahn'Qiraj", "The Old God Stirs", 1200, { 240, "Kurinnaxx", 480, "General Rajaxx", 720, "Princess Huhuran", 960, "Ossirian the Unscarred", 1200, "C'Thun" } },
+	scholomance = { "Scholomance", "The Great Ossuary", 1200, { 240, "Kirtonos the Herald", 480, "Ras Frostwhisper", 720, "Doctor Theolen Krastinov", 960, "Lord Alexei Barov", 1200, "Darkmaster Gandling" } },
 	naxx = { "Naxxramas", "The Scourge Invasion", 1200, { 240, "Anub'Rekhan", 480, "Noth the Plaguebringer", 720, "Patchwerk", 960, "Sapphiron", 1200, "Kel'Thuzad" } },
 }
 

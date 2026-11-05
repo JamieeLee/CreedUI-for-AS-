@@ -580,6 +580,42 @@ do
 	this = CreedUIParty1
 	CreedUIParty1.__scripts.OnClick()
 	check(M.targeted == "party1", "clicking a friend targets them")
+	-- a right click: Inspect, Follow, Whisper
+	this, arg1 = CreedUIParty1, "RightButton"
+	CreedUIParty1.__scripts.OnClick()
+	arg1 = "LeftButton"
+	check(CreedUIPartyMenu and M.Visible(CreedUIPartyMenu) and findText(CreedUIPartyMenu, "^Melkor$") ~= nil
+		and findText(CreedUIPartyMenu, "^Inspect$") and findText(CreedUIPartyMenu, "^Follow$") and findText(CreedUIPartyMenu, "^Whisper$"),
+		"a right click opens Inspect, Follow and Whisper under their name: " .. (CreedUIPartyMenu and table.concat(textsUnder(CreedUIPartyMenu), " | ") or "none"))
+	local function press(word)
+		for _, o in ipairs(M.All()) do
+			if o.__kind == "FontString" and o.__text == word and under(o, CreedUIPartyMenu) then
+				this = o.__parent
+				o.__parent.__scripts.OnClick()
+				return
+			end
+		end
+	end
+	press("Inspect")
+	check(M.asked[table.getn(M.asked)] == "inspect party1" and not M.Visible(CreedUIPartyMenu), "Inspect opens their gear, and the menu closes")
+	this, arg1 = CreedUIParty1, "RightButton"
+	CreedUIParty1.__scripts.OnClick()
+	press("Follow")
+	check(M.asked[table.getn(M.asked)] == "follow party1", "Follow follows them")
+	this, arg1 = CreedUIParty1, "RightButton"
+	CreedUIParty1.__scripts.OnClick()
+	press("Whisper")
+	check(ChatFrameEditBox:GetText() == "/w Melkor ", "Whisper opens the chat box to them: " .. tostring(ChatFrameEditBox:GetText()))
+	ChatFrameEditBox:SetText("")
+	ChatFrameEditBox:Hide()
+	M.farAway.party1 = true
+	local asked = table.getn(M.asked)
+	this, arg1 = CreedUIParty1, "RightButton"
+	CreedUIParty1.__scripts.OnClick()
+	press("Inspect")
+	check(table.getn(M.asked) == asked and chatHas("Too far away to inspect"), "too far away to inspect: it says so")
+	M.farAway.party1 = nil
+	arg1 = "LeftButton"
 	M.unit.party4 = { exists = false }
 	M.Fire("PARTY_MEMBERS_CHANGED")
 	frames(40)
@@ -700,28 +736,38 @@ do
 	table.remove(M.meter.damage)
 	table.remove(M.meter.damage)
 	frames(30)
-	-- a summon's skills get lines of their own, every summon of a kind counted together
+	-- every pet's and summon's skills together on one Pet line; its tooltip names the best of them
 	table.insert(M.meter.damage, { key = "melee", name = "Melee", amount = 600, actor = { id = "P7", kind = "pet", name = "Wolf", summonKey = "wolf" } })
 	table.insert(M.meter.damage, { key = "melee", name = "Melee", amount = 400, actor = { id = "P8", kind = "pet", name = "Wolf", summonKey = "wolf" } })
+	table.insert(M.meter.damage, { key = "immolation", name = "Immolation", amount = 300, actor = { id = "P9", kind = "summon", name = "Infernal", summonKey = "infernal" } })
 	frames(30)
-	check(findText(CreedUIMeter, "^1%.0k ") ~= nil and lineCount() == 6 and findText(CreedUIMeter, "^Wolf$") ~= nil,
-		"a pet's swings get a line of their own, the pet's name in a tag: " .. table.concat(textsUnder(CreedUIMeter), " | "))
-	-- a long summon name never wraps: it shortens to its last word, then is cut, the skill kept whole
-	M.meter.damage[table.getn(M.meter.damage)].actor.name = "White Devilsaur of the Untamed Wilds"
+	check(findText(CreedUIMeter, "^%d+%. Pet$") ~= nil and findText(CreedUIMeter, "^1%.3k ") ~= nil and lineCount() == 6
+		and findText(CreedUIMeter, "Wolf") == nil and findText(CreedUIMeter, "Infernal") == nil,
+		"all the pets' skills are one Pet line: " .. table.concat(textsUnder(CreedUIMeter), " | "))
+	local petRow
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "FontString" and o.__text and string.find(M.Plain(o.__text), "^%d+%. Pet$") and under(o, CreedUIMeter) then petRow = o.__parent end
+	end
+	while petRow and not (petRow.__scripts and petRow.__scripts.OnEnter) do petRow = petRow.__parent end
+	if petRow then
+		this = petRow
+		petRow.__scripts.OnEnter()
+	end
+	frames(2)
+	local tipText = table.concat(M.tip.lines, " / ")
+	check(string.find(tipText, "Best spell | Wolf: Melee", 1, true) ~= nil, "its tooltip names the pets' best skill: " .. tipText)
+	if petRow and petRow.__scripts.OnLeave then petRow.__scripts.OnLeave() end
+	-- the Pet line's words never wrap, whatever the pet is called
 	M.meter.damage[table.getn(M.meter.damage) - 1].actor.name = "White Devilsaur of the Untamed Wilds"
 	frames(30)
-	local wraps, tagged = 0, nil
+	local wraps = 0
 	for _, o in ipairs(M.All()) do
 		if o.__kind == "FontString" and o.__text and under(o, CreedUIMeter) and visibleAlpha(o) > 0.05 then
-			local w = o.__w
-			local plain = M.Plain(o.__text)
-			if w and M.TextWidth and M.TextWidth(o) > w + 0.5 then wraps = wraps + 1 end
-			if plain == "Wilds" or string.find(plain, "^White Devil") then tagged = plain end
+			if o.__w and M.TextWidth and M.TextWidth(o) > o.__w + 0.5 then wraps = wraps + 1 end
 		end
 	end
 	check(wraps == 0, "no line's words wrap: " .. wraps)
-	check(tagged == "Wilds" or (tagged and string.find(tagged, "%.%.%.$")), "the long name shortens: " .. tostring(tagged))
-	check(findText(CreedUIMeter, "^%d+%. Melee$") ~= nil, "and the skill stays whole")
+	table.remove(M.meter.damage)
 	table.remove(M.meter.damage)
 	table.remove(M.meter.damage)
 	frames(30)
@@ -738,6 +784,13 @@ do
 	M.meter.party = { { key = "H1", name = "Creed", class = "rogue", amount = 20000 }, { key = "H2", name = "Melkor", class = "mage", amount = 15000 } }
 	frames(30)
 	check(findText(CreedUIMeter, "^1%. Creed$") ~= nil and findText(CreedUIMeter, "^2%. Melkor$") ~= nil, "Party DPS lists the heroes")
+	-- each hero's best skill in a tag on their line
+	M.meter.partySkills = { { owner = "H1", key = "ss", name = "Sinister Strike", amount = 12000 },
+		{ owner = "H1", key = "bs", name = "Backstab", amount = 8000 }, { owner = "H2", key = "fb", name = "Fireball", amount = 15000 } }
+	frames(30)
+	check(findText(CreedUIMeter, "^Sinister") ~= nil and findText(CreedUIMeter, "^Fireball$") ~= nil and findText(CreedUIMeter, "^Backstab$") == nil,
+		"each hero's best skill shows on their line: " .. table.concat(textsUnder(CreedUIMeter), " | "))
+	M.meter.partySkills = nil
 	check(countTex(CreedUIMeter, "^Portrait:pk1$") == 1, "with their portraits")
 	-- the title opens the four views
 	local head = CreedUIMeter.head
@@ -774,16 +827,15 @@ do
 	AZS_GetMeterSnapshot = snapFn
 	AZS_GetMeter = nil
 	frames(30)
-	-- close it; the gem by the minimap brings it back
+	-- close it; its toggle in the options brings it back
 	local close = buttonLabeled(CreedUIMeter, "x")
 	this = close
 	close.__scripts.OnClick()
 	frames(40)
 	check(not CreedUIMeter.__shown, "x hides the meter")
-	this = CreedUIMeterToggle
-	CreedUIMeterToggle.__scripts.OnClick()
+	M.Slash("meter on")
 	frames(40)
-	check(CreedUIMeter.__shown, "the gem by the minimap brings it back")
+	check(CreedUIMeter.__shown, "its toggle in the options brings it back")
 	-- fold it to the title
 	local fold = buttonLabeled(CreedUIMeter, "^")
 	this = fold
@@ -1124,6 +1176,23 @@ do
 	check(p[1] and math.abs(p[1].x - 9) < 0.3 and math.abs(p[1].y) < 0.3,
 		string.format("where it lies (%.2f, %.2f)", p[1] and p[1].x or -1, p[1] and p[1].y or -1))
 	check(not shownUnder("Ring"), "a cache there from the start doesn't ring")
+	-- one right where you stand fades to a ghost, so the game's arrow shows over it
+	AZS_CHESTS = { AZS_CHESTS[1], { id = 9, x = 100, y = 200, z = 0, mx = -1, my = -1 } }
+	AZS_CHESTS_UPDATED = M.now
+	SIM.Advance(0.3, 1 / 30)
+	local ghost
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "Texture" and o.__tex and string.find(o.__tex, "Chest$") and under(o, CreedUIChests) and M.Visible(o) then
+			local l, b, r, t = M.Rect(o)
+			local ml, mb, mr, mt = M.Rect(Minimap)
+			if math.abs((l + r) / 2 - (ml + mr) / 2) < 1 and math.abs((b + t) / 2 - (mb + mt) / 2) < 1 then ghost = visibleAlpha(o) end
+		end
+	end
+	check(ghost and ghost < 0.3, "a cache under your arrow fades so the arrow shows: " .. tostring(ghost))
+	check(table.getn(pins()) == 1, "and one a little away stays clear")
+	AZS_CHESTS = { AZS_CHESTS[1] }
+	AZS_CHESTS_UPDATED = M.now
+	SIM.Advance(0.3, 1 / 30)
 	check(shownUnder("Glow"), "it glows while your gold pays for it")
 	-- one drops far to the north: on the rim, smaller, and it rings
 	AZS_CHESTS = { AZS_CHESTS[1], { id = 2, x = 1100, y = 200, z = 0, mx = -1, my = -1 } }
@@ -1322,16 +1391,14 @@ do
 	local l3, b3, r3, t3 = M.Rect(CreedUILuck)
 	check(CreedUILuck:GetScale() > 1.05 and math.abs(l3 - l2) < 0.6 and math.abs(t3 - t2) < 0.6,
 		string.format("a corner makes it bigger, the corner across from it in place (scale %.2f)", CreedUILuck:GetScale()))
-	-- its x hides it; the gem by the minimap brings it back
+	-- its x hides it; its toggle in the options brings it back
 	this = CreedUILuck.close
 	CreedUILuck.close.__scripts.OnClick()
 	frames(30)
 	check(not CreedUILuck.__shown, "its x hides it")
-	check(CreedUILuckToggle and CreedUILuckToggle.__shown, "a gem by the minimap stays")
-	this = CreedUILuckToggle
-	CreedUILuckToggle.__scripts.OnClick()
+	M.Slash("luck on")
 	frames(30)
-	check(CreedUILuck.__shown, "and clicking the gem brings it back")
+	check(CreedUILuck.__shown, "and its toggle brings it back")
 	CreedUIDB.luck.width, CreedUIDB.luck.scale = 236, 1
 	CreedUILuck:SetScale(1)
 	M.Slash("reset")
@@ -1723,7 +1790,7 @@ do
 		check(math.abs(math.sqrt(x * x + y * y) - 80) < 1 and x > 0 and y < 0, string.format("on the rim, lower right (%.1f, %.1f)", x, y))
 		local l, bt, r, t = M.Rect(b)
 		check(l >= 0 and bt >= 0 and r <= SW and t <= SH, "on the screen")
-		for _, g in ipairs({ CreedUIMeterToggle, CreedUILuckToggle, CreedUIMinimapClock }) do
+		for _, g in ipairs({ CreedUIMinimapClock }) do
 			local gl, gb, gr, gt = M.Rect(g)
 			check(gr <= l or gl >= r or gt <= bt or gb >= t, "clear of " .. g:GetName())
 		end
@@ -1833,65 +1900,20 @@ do
 			if o.__kind == "Texture" and o.__parent == b and o.__tex and string.find(o.__tex, "Map[SC][wl]o?[ro]") then return o end
 		end
 	end
-	local swords, clover = CreedUIMeterToggle, CreedUILuckToggle
-	check(swords and clover and M.Visible(swords) and M.Visible(clover), "the swords and the clover sit on the minimap")
-	check(swords and swords.crest.__tex and string.find(swords.crest.__tex, "MapSwords$") and string.find(clover.crest.__tex, "MapClover$"),
-		"with their crests")
-	local boxes = { swords, clover, CreedUIMinimapButton, CreedUIMinimapClock }
-	for i = 1, 2 do
-		local x, y = centre(boxes[i])
-		check(math.abs(math.sqrt(x * x + y * y) - 80) < 1 and x < 0, string.format("%s on the rim, on the left (%.1f, %.1f)", boxes[i]:GetName(), x, y))
-		local l, b, r, t = M.Rect(boxes[i])
-		check(l >= 0 and b >= 0 and r <= SW and t <= SH, boxes[i]:GetName() .. " on the screen")
-		for j = 1, table.getn(boxes) do
-			if j ~= i then
-				local gl, gb, gr, gt = M.Rect(boxes[j])
-				check(gr <= l or gl >= r or gt <= b or gb >= t, boxes[i]:GetName() .. " clear of " .. boxes[j]:GetName())
-			end
-		end
-	end
-	-- a click hides the meter, the swords dim; another brings it back
-	CreedUIDB.meter.shown = true
-	frames(30)
-	local bright = swords.crest.__vc[1]
-	this = swords
-	arg1 = "LeftButton"
-	swords.__scripts.OnClick()
-	frames(30)
-	check(not CreedUIDB.meter.shown and not M.Visible(CreedUIMeter) or visibleAlpha(CreedUIMeter) < 0.05, "a click on the swords hides the meter")
-	check(swords.crest.__vc[1] < bright * 0.5, string.format("and they dim (%.2f from %.2f)", swords.crest.__vc[1], bright))
-	arg1 = "LeftButton"
-	swords.__scripts.OnClick()
-	frames(30)
-	check(CreedUIDB.meter.shown and swords.crest.__vc[1] > bright * 0.95, "another brings it back, lit")
-	swords.__scripts.OnEnter()
-	local tip = table.concat(M.tip.lines, " / ")
-	check(string.find(tip, "Damage meter", 1, true) and string.find(tip, "Click to show or hide it.", 1, true) and string.find(tip, "Drag:", 1, true), "their tooltip: " .. tip)
-	swords.__scripts.OnLeave()
-	-- the clover dragged up to the top left; kept over a reload
-	clover.__scripts.OnDragStart()
-	local mx, my = Minimap:GetCenter()
-	local k = Minimap:GetEffectiveScale()
-	M.cursorX, M.cursorY = (mx - 40) * k, (my + 40) * k
-	frames(3)
-	clover.__scripts.OnDragStop()
-	local shown = CreedUIDB.luck.shown
-	clover.__scripts.OnClick()
-	check(CreedUIDB.luck.edgeAngle == 135 and CreedUIDB.luck.shown == shown, "the clover slides round where it's dragged, and the drag's end is no click: " .. tostring(CreedUIDB.luck.edgeAngle))
-	frames(15)
-	M.Reload(DIR, true)
-	frames(5)
-	local x, y = centre(CreedUILuckToggle)
-	check(math.abs(x + 56.6) < 0.6 and math.abs(y - 56.6) < 0.6, string.format("and stays there after a reload (%.1f, %.1f)", x, y))
-	-- each goes with its window's part
-	M.Slash("luck off")
-	check(not M.Visible(CreedUILuckToggle) and M.Visible(CreedUIMeterToggle), "/creed luck off: the clover goes, the swords stay")
-	M.Slash("luck on")
+	-- 1.14.3: one button on the edge; the meter and the luck window are shown or hidden in the options
+	check(CreedUIMeterToggle == nil and CreedUILuckToggle == nil, "no swords or clover on the minimap")
 	M.Slash("meter off")
-	check(not M.Visible(CreedUIMeterToggle) and M.Visible(CreedUILuckToggle), "/creed meter off: the swords go")
+	frames(30)
+	check(not M.Visible(CreedUIMeter) or visibleAlpha(CreedUIMeter) < 0.05, "the meter's toggle hides it")
 	M.Slash("meter on")
-	check(M.Visible(CreedUIMeterToggle), "and back")
-	CreedUIDB.luck.edgeAngle = nil
+	frames(30)
+	check(M.Visible(CreedUIMeter), "and brings it back")
+	M.Slash("luck off")
+	frames(30)
+	check(not M.Visible(CreedUILuck), "the luck window's toggle hides it")
+	M.Slash("luck on")
+	frames(30)
+	check(M.Visible(CreedUILuck), "and brings it back")
 	problems("edge buttons")
 end
 
@@ -2988,6 +3010,327 @@ do
 	check(rimM and math.abs(rimM.__vc[1] - 0.95) < 0.01 and math.abs(rimM.__vc[2] - 0.79) < 0.01 and math.abs(rimM.__vc[3] - 0.44) < 0.01,
 		"the timer's rails are bronze gold")
 	problems("bar ends and timer metal")
+end
+
+------------------------------------------------------------------ 11b. damage taken: red numbers by the hero
+do
+	SIM.StartRun("naxx", { killAfter = 60 })
+	AZS_TAKEN = { { source = "Plagued Ghoul", dmg = 900 } } -- already taken when a /reload comes mid-run
+	M.Reload(DIR, true)
+	SIM.Advance(0.5, 1 / 30)
+	check(findText(CreedUIHurt, "^%-") == nil, "what was taken before isn't shown again: " .. table.concat(textsUnder(CreedUIHurt), " | "))
+	AZS_TAKEN = { { source = "Plagued Ghoul", dmg = 1200 }, { source = "Anub'Rekhan", dmg = 450 } }
+	SIM.Advance(0.3, 1 / 30)
+	check(findText(CreedUIHurt, "^%-750$") ~= nil, "new blows rise as one red number: " .. table.concat(textsUnder(CreedUIHurt), " | "))
+	local red
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "FontString" and o.__text == "-750" and under(o, CreedUIHurt) then red = o end
+	end
+	check(red and red.__color and red.__color[1] > 0.9 and red.__color[2] < 0.4, "in red")
+	local l, b, r, t = M.Rect(red)
+	local ul, ub, ur, ut = M.Rect(UIParent)
+	check(red and (l + r) / 2 < (ul + ur) / 2 and (b + t) / 2 > (ub + ut) / 2, "beside the hero, at the middle of the screen")
+	SIM.Advance(2, 1 / 30)
+	check(findText(CreedUIHurt, "^%-750$") == nil, "and it fades away")
+	-- the health you get back, in green on the other side
+	AZS_HEALING = { { name = "Renew", dmg = 250 } }
+	SIM.Advance(0.3, 1 / 30)
+	local green
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "FontString" and o.__text == "+250" and under(o, CreedUIHurt) then green = o end
+	end
+	check(green and green.__color and green.__color[2] > 0.9 and green.__color[1] < 0.5, "a heal rises as a green +250")
+	local gl, gb, gr, gt = M.Rect(green)
+	local hl, hb, hr, ht = M.Rect(UIParent)
+	check(green and (gl + gr) / 2 > (hl + hr) / 2, "on the hero's other side")
+	AZS_HEALING = nil
+	M.Slash("") -- the options open and close without trouble
+	problems("damage taken")
+end
+
+------------------------------------------------------------------ 11c. the pet bar; a gold chest over each cache
+do
+	SIM.StartRun("naxx", { killAfter = 60 })
+	M.petActions, M.summons = nil, {}
+	frames(30)
+	check(not M.Visible(CreedUIPetBar) or visibleAlpha(CreedUIPetBar) < 0.05, "no pet out: no pet bar")
+	-- summons: each kind's face, count and the skills the meter saw it use
+	local I = "Interface\\Icons\\"
+	M.summons = { { id = 1, key = "spirit_wolf", kind = "pet", name = "Spirit Wolf", icon = I .. "Spell_Nature_SpiritWolf" },
+		{ id = 2, key = "spirit_wolf", kind = "pet", name = "Spirit Wolf", icon = I .. "Spell_Nature_SpiritWolf" } }
+	CreedUIDB.meter.tab = "damage"
+	table.insert(M.meter.damage, { key = "bite", name = "Bite", icon = I .. "Ability_Racial_Cannibalize", amount = 700,
+		actor = { id = "P1", kind = "pet", name = "Spirit Wolf", summonKey = "spirit_wolf" } })
+	frames(40)
+	check(M.Visible(CreedUIPetBar) and visibleAlpha(CreedUIPetBar) > 0.9, "summons out: the pet bar shows")
+	check(countTex(CreedUIPetBar, "SpiritWolf$") == 1 and findText(CreedUIPetBar, "^2$") ~= nil, "the wolves' face and their count: " .. table.concat(textsUnder(CreedUIPetBar), " | "))
+	check(countTex(CreedUIPetBar, "Cannibalize$") == 0, "a skill whose hits haven't been seen isn't shown (no value to give)")
+	-- each kind its own face, by its name; a skill shows what it hits for, not its total
+	table.insert(M.summons, { id = 3, key = "raptor", kind = "pet", name = "Raptor", icon = I .. "INV_Misc_QuestionMark" })
+	local foe = M.Enemy("Ghoul", 2, 4)
+	M.Hit(foe, 350, "strike", false)
+	local ev = M.world.events[M.world.nEvents]
+	ev.meterSourceKey, ev.meterSource = "bite", "Bite"
+	frames(20)
+	check(countTex(CreedUIPetBar, "Pet_Raptor$") == 1 and countTex(CreedUIPetBar, "QuestionMark$") == 0, "the raptor wears a raptor")
+	-- a skill shows once its hits are seen, with its own icon; a buff that deals none never does
+	check(countTex(CreedUIPetBar, "BeastCall$") == 0 and countTex(CreedUIPetBar, "FerociousBite$") == 0,
+		"no Kill Command or Bestial Wrath before any of their hits")
+	table.insert(M.summons, { id = 5, key = "imp", kind = "imp", name = "Imp", icon = I .. "INV_Misc_QuestionMark" })
+	frames(10)
+	check(countTex(CreedUIPetBar, "SummonImp$") == 1 and countTex(CreedUIPetBar, "FireBolt$") == 0, "a new Imp: its face, no Firebolt yet")
+	M.Hit(M.Enemy("Ghoul", 2, 4), 222, "strike", false)
+	local fe = M.world.events[M.world.nEvents]
+	fe.meterSourceKey, fe.meterSource = "ability:imp_firebolt:r1", "Firebolt"
+	frames(10)
+	check(countTex(CreedUIPetBar, "FireBolt$") == 1 and findText(CreedUIPetBar, "^222$") ~= nil, "its Firebolt shows once it hits, with the game's icon for it")
+	table.remove(M.summons)
+	check(findText(CreedUIPetBar, "^350$") ~= nil and findText(CreedUIPetBar, "700") == nil,
+		"Bite shows what it hits for (350), not its total (700): " .. table.concat(textsUnder(CreedUIPetBar), " | "))
+	-- its tooltip: what it does and its damage now, as a skill's would
+	M.Hit(foe, 900, "strike", false, true)
+	ev = M.world.events[M.world.nEvents]
+	ev.meterSourceKey, ev.meterSource = "bite", "Bite"
+	AZS_STATS = AZS_STATS or {}
+	local petWas = AZS_STATS.pet
+	AZS_STATS.pet = 0.25
+	frames(10)
+	local bite
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "Texture" and o.__tex and string.find(o.__tex, "Cannibalize$") and under(o, CreedUIPetBar) then bite = o.__parent end
+	end
+	this = bite
+	bite.__scripts.OnEnter()
+	local tip = table.concat(M.tip.lines, " / ")
+	check(string.find(tip, "Bites the enemy you attack.", 1, true) and string.find(tip, "Hits for | 350", 1, true)
+		and string.find(tip, "Crits for | 900", 1, true) and string.find(tip, "Pet Damage | +25%", 1, true)
+		and string.find(tip, "Hits per second", 1, true), "Bite's tooltip: what it does, its hits, its crit, the pet bonus: " .. tip)
+	bite.__scripts.OnLeave()
+	AZS_STATS.pet = petWas
+	-- Kill Command's hits come under its key, not its name: still its own value
+	M.Hit(foe, 1234, "strike", false)
+	ev = M.world.events[M.world.nEvents]
+	ev.meterSourceKey, ev.meterSource, ev.abilityName = "ability:kill_command:r2", nil, nil
+	frames(10)
+	check(findText(CreedUIPetBar, "^1,234$") ~= nil, "Kill Command's hits register by its key: " .. table.concat(textsUnder(CreedUIPetBar), " | "))
+	table.remove(M.summons)
+	local pl, pb, pr = M.Rect(CreedUIPetBar)
+	local bl, bb, br, bt = M.Rect(CreedUIBar)
+	check(pb >= bt and pl < (bl + br) / 2, string.format("over the skill bar, on its left (%.0f over %.0f)", pb, bt))
+	-- the game's own pet buttons, when it gives them
+	M.petActions = { { name = "PET_ACTION_ATTACK", token = true, icon = "PET_ATTACK_TEXTURE", active = false },
+		{ name = "Furious Howl", icon = I .. "Ability_Hunter_Pet_Wolf", autoAllowed = true, auto = true, cdStart = M.now, cdDur = 10 } }
+	PET_ACTION_ATTACK, PET_ATTACK_TEXTURE = "Attack", "Interface\\Icons\\Ability_GhoulFrenzy"
+	frames(10)
+	check(countTex(CreedUIPetBar, "GhoulFrenzy$") == 1 and countTex(CreedUIPetBar, "Pet_Wolf$") == 1 and countTex(CreedUIPetBar, "SpiritWolf$") == 0,
+		"the pet's own buttons replace the summons")
+	local howl
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "Texture" and o.__tex and string.find(o.__tex, "Pet_Wolf$") and under(o, CreedUIPetBar) then howl = o.__parent end
+	end
+	this, arg1 = howl, "LeftButton"
+	howl.__scripts.OnClick()
+	arg1 = "RightButton"
+	howl.__scripts.OnClick()
+	check(M.petCast[1] == "cast 2" and M.petCast[2] == "auto 2", "a click uses it, a right click switches its autocast: " .. table.concat(M.petCast, ", "))
+	howl.__scripts.OnEnter()
+	check(M.tip.shown and M.tip.petAction == 2, "pointing at it shows the game's tooltip")
+	howl.__scripts.OnLeave()
+	M.petActions, M.summons = nil, {}
+	table.remove(M.meter.damage)
+	frames(40)
+	check(not M.Visible(CreedUIPetBar) or visibleAlpha(CreedUIPetBar) < 0.05, "and it goes when the pets do")
+	-- a cache on the field wears a gold chest; taken, it fades
+	AZS_CHESTS = { { id = 7, x = 100, y = 170, z = 0, mx = -1, my = -1 } }
+	AZS_CHESTS_UPDATED = M.now
+	frames(40)
+	local chest
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "Texture" and o.__tex and string.find(o.__tex, "Art\\Chest$") and not under(o, CreedUIChests) and not under(o, CreedUITally)
+			and visibleAlpha(o) > 0.5 then chest = o end
+	end
+	check(chest ~= nil and chest.__vc and chest.__vc[3] < 0.6, "a gold chest over the cache in the world")
+	AZS_CHESTS[1].taken = true
+	frames(60)
+	check(not chest or not M.Visible(chest) or visibleAlpha(chest) < 0.05, "taken, its chest fades")
+	AZS_CHESTS = {}
+	problems("pet bar and cache marks")
+end
+
+------------------------------------------------------------------ 11d. how many of a spell are out, on its slot
+do
+	SIM.StartRun("naxx", { killAfter = 60 })
+	local saved1, saved2 = M.actions[1], M.actions[2]
+	M.actions[1] = { tex = "Interface\\Icons\\Spell_Frost_IceStorm", start = 0, dur = 0 }
+	M.actions[2] = { tex = "Interface\\Icons\\Spell_Fire_SearingTotem", start = 0, dur = 0 }
+	frames(10)
+	local function countOn(i)
+		local want = M.actions[i].tex
+		for _, o in ipairs(M.All()) do
+			if o.__kind == "Texture" and o.__tex == want and under(o, CreedUIBar) then
+				local b = o.__parent
+				for _, f in ipairs(M.All()) do
+					if f.__kind == "FontString" and f.__text and f.__text ~= "" and under(f, b) and string.find(f.__text, "^%d+$") and visibleAlpha(f) > 0.05 then
+						return f.__text
+					end
+				end
+				return nil
+			end
+		end
+	end
+	for k = 1, 3 do
+		M.actions[1].start, M.actions[1].dur = M.now, 2
+		frames(75) -- cast again as its two seconds of cooldown run out
+	end
+	check(countOn(1) == "3", "three Blizzards burning at once: " .. tostring(countOn(1)))
+	M.actions[1].start, M.actions[1].dur = 0, 0
+	frames(300)
+	check(countOn(1) == nil, "and none once they've burned out: " .. tostring(countOn(1)))
+	M.totems = { { key = "searing", name = "Searing Totem", icon = "Interface\\Icons\\Spell_Fire_SearingTotem", count = 2, cap = 3 } }
+	frames(10)
+	check(countOn(2) == "2", "the totems standing, by the game's count: " .. tostring(countOn(2)))
+	M.totems = nil
+	M.actions[1], M.actions[2] = saved1, saved2
+	frames(10)
+	problems("active counts")
+end
+
+------------------------------------------------------------------ 11e. damage numbers: four ways to move
+do
+	frames(200)
+	local function track(motion, amount)
+		CreedUIDB.numbers.motion = motion
+		local e = M.Enemy("Dummy " .. motion, 3, 3)
+		M.Hit(e, amount, "strike", false)
+		local text = tostring(amount)
+		local function at()
+			for _, o in ipairs(M.All()) do
+				if o.__kind == "FontString" and o.__text and under(o, CreedUINumbersLayer) and visibleAlpha(o) > 0.05 and M.Plain(o.__text) == text then
+					local h = o.__parent
+					while h and h.__parent ~= CreedUINumbersLayer do h = h.__parent end
+					local l, b, r, t = M.Rect(h or o)
+					return (l + r) / 2, (b + t) / 2
+				end
+			end
+		end
+		frames(2)
+		local x0, y0 = at()
+		frames(18)
+		local x1, y1 = at()
+		frames(120)
+		if not (x0 and x1) then return 0, 0 end
+		return x1 - x0, y1 - y0
+	end
+	local sx, sy = track("smooth", 431)
+	local rx, ry = track("rise", 432)
+	local fx, fy = track("fountain", 433)
+	local ix, iy = track("impact", 434)
+	check(sy > 2 and math.abs(sx) < 1, string.format("smooth: drifts up (%.1f, %.1f)", sx, sy))
+	check(ry > sy * 2 and math.abs(rx) < 1, string.format("rise: climbs much faster (%.1f against %.1f)", ry, sy))
+	check(math.abs(fx) > 15, string.format("fountain: arcs off to the side (%.1f, %.1f)", fx, fy))
+	check(math.abs(iy) < 1 and math.abs(ix) < 1, string.format("impact: stays put (%.1f, %.1f)", ix, iy))
+	M.Slash("numbers rise")
+	check(CreedUIDB.numbers.motion == "rise", "/creed numbers rise picks it")
+	CreedUIDB.numbers.motion = "smooth"
+	problems("number motions")
+end
+
+------------------------------------------------------------------ 11f. the loot pop-up
+do
+	SIM.StartRun("naxx", { killAfter = 60 })
+	frames(10)
+	check(M.hud.loot == false, "the game's own loot pop-up is put away")
+	local function toasts()
+		local out = {}
+		for _, o in ipairs(M.All()) do
+			if o.__kind == "Frame" and o.__parent == CreedUILoot and M.Visible(o) and visibleAlpha(o) > 0.3 then table.insert(out, o) end
+		end
+		return out
+	end
+	check(table.getn(toasts()) == 0, "no pop-up before any loot")
+	-- the game's line as it comes: a plain name in brackets, then whether it's new to the collection
+	ChatFrame1:AddMessage("You receive loot: [Novice's Boots] New in your collection!")
+	frames(10)
+	check(table.getn(toasts()) == 1 and findText(CreedUILoot, "^Novice's Boots$") ~= nil and findText(CreedUILoot, "^New in your collection!$") ~= nil,
+		"a drop pops up: its name and that it's new: " .. table.concat(textsUnder(CreedUILoot), " | "))
+	check(countTex(CreedUILoot, "INV_Boots_01$") == 1 and countTex(CreedUILoot, "Art\\Slot$") == 1, "with an icon by what it is, in a metal slot")
+	ChatFrame1:AddMessage("Du erhältst Beute: [Signet of the Fallen] Bereits gesammelt")
+	M.items = { [16801] = { name = "Arcanist Belt", quality = 4, icon = "Interface\\Icons\\INV_Belt_30" } }
+	ChatFrame1:AddMessage("You receive loot: |cffa335ee|Hitem:16801:0:0:0|h[Arcanist Belt]|h|r.")
+	ChatFrame1:AddMessage("You earn 5 marks (120 in all).")
+	frames(10)
+	check(table.getn(toasts()) == 3, "three at most, the oldest gone: " .. table.getn(toasts()))
+	check(findText(CreedUILoot, "^%+5 marks$") ~= nil and findText(CreedUILoot, "^120 in all$") ~= nil and countTex(CreedUILoot, "Token_ArgentDawn$") == 1,
+		"marks earned pop up on an Argent Dawn token")
+	check(findText(CreedUILoot, "^Already in your collection%.$") ~= nil and countTex(CreedUILoot, "INV_Belt_30$") == 1, "a ring you had, and a belt with its own icon")
+	local belt
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "FontString" and o.__text == "Arcanist Belt" and under(o, CreedUILoot) then belt = o end
+	end
+	check(belt and belt.__color and belt.__color[1] > 0.6 and belt.__color[3] > 0.9, "a name in its rarity's color (epic purple)")
+	-- the newest lowest
+	local marksY, beltY
+	for _, f in ipairs(toasts()) do
+		local _, _, _, top = M.Rect(f)
+		for _, o in ipairs(M.All()) do
+			if o.__kind == "FontString" and o.__parent == f and o.__text == "+5 marks" then marksY = top end
+			if o.__kind == "FontString" and o.__parent == f and o.__text == "Arcanist Belt" then beltY = top end
+		end
+	end
+	check(marksY and beltY and marksY < beltY, "the newest lowest, nearest the skill bar")
+	ChatFrame1:AddMessage("Melkor says: You receive loot: nothing, haha")
+	frames(5)
+	check(findText(CreedUILoot, "nothing") == nil, "someone saying the words in chat isn't loot")
+	SIM.Advance(6, 1 / 30)
+	check(table.getn(toasts()) == 0, "a few seconds on, they melt away")
+	M.Slash("loot off")
+	frames(5)
+	check(M.hud.loot ~= false, "turned off, the game's own pop-up comes back")
+	M.Slash("loot on")
+	frames(5)
+	problems("loot")
+end
+
+------------------------------------------------------------------ 11g. the chat and the hero's numbers, moved and sized
+do
+	frames(5)
+	local chat = ChatFrame1
+	local l0, b0 = chat:GetLeft(), chat:GetBottom()
+	local w0 = chat:GetWidth()
+	check(not M.Visible(CreedUIChatMover), "no chat box while the frames are locked")
+	CreedUI.SetUnlocked(true)
+	frames(3)
+	check(M.Visible(CreedUIChatMover), "unlocked: a Chat box over the chat")
+	M.dragBy = { 60, 40 }
+	this = CreedUIChatMover
+	CreedUIChatMover.__scripts.OnDragStart()
+	CreedUIChatMover.__scripts.OnDragStop()
+	M.dragBy = nil
+	check(math.abs(chat:GetLeft() - (l0 + 60)) < 1 and math.abs(chat:GetBottom() - (b0 + 40)) < 1,
+		string.format("dragging moves the chat (%.0f,%.0f -> %.0f,%.0f)", l0, b0, chat:GetLeft(), chat:GetBottom()))
+	this = CreedUIChatGrip
+	CreedUIChatGrip.__scripts.OnMouseDown()
+	chat:SetWidth(w0 + 90)
+	CreedUIChatGrip.__scripts.OnMouseUp()
+	check(CreedUIDB.chat.place and math.abs(CreedUIDB.chat.place.w - (w0 + 90)) < 1, "its corner sizes it, and the size is kept")
+	M.Reload(DIR, true)
+	frames(5)
+	check(math.abs(ChatFrame1:GetLeft() - (l0 + 60)) < 1 and math.abs(ChatFrame1:GetWidth() - (w0 + 90)) < 1, "both kept over a reload")
+	-- the hero's numbers have a spot to drag too
+	check(CreedUIHurtSpot ~= nil, "the damage taken numbers have a spot")
+	CreedUI.SetUnlocked(true)
+	frames(2)
+	local boxes = 0
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "Frame" and o.__parent == CreedUIHurtSpot and o.__backdrop and M.Visible(o) then boxes = boxes + 1 end
+	end
+	check(boxes == 1, "shown as a box to drag while unlocked")
+	CreedUI.ResetPositions()
+	frames(3)
+	check(CreedUIDB.chat.place == nil and math.abs(ChatFrame1:GetLeft() - l0) < 1, "resetting the frames puts the chat back")
+	CreedUI.SetUnlocked(false)
+	frames(2)
+	problems("chat moved")
 end
 
 ------------------------------------------------------------------ 12. no API at all

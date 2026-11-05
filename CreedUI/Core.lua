@@ -5,7 +5,7 @@
 CreedUI = {}
 local C = CreedUI
 
-C.VERSION = "1.14.3"
+C.VERSION = "1.19.0"
 C.ART = "Interface\\AddOns\\CreedUI\\Art\\"
 C.FLAT = "Interface\\ChatFrame\\ChatFrameBackground"
 C.FONT = "Fonts\\FRIZQT__.TTF"
@@ -118,6 +118,61 @@ function C.Place(r, point, rel, relPoint, x, y)
 end
 
 ------------------------------------------------------------------------ numbers as text
+-- a skill's plain key: "ability:kill_command:r3" or "Kill Command" both "kill_command"
+function C.SkillKey(k)
+	if type(k) ~= "string" or k == "" then return nil end
+	k = string.gsub(k, ":r%d+.*$", "")
+	k = string.gsub(k, "^.*:", "")
+	return string.lower((string.gsub(k, "[%s%-']+", "_")))
+end
+
+-- What each skill hits for, by its meter line (and its name): the last plain hit, an average of
+-- the last few that settles as they come, the lowest and highest, the last crit, and how many hits
+-- the last ten seconds saw. DoT ticks aside; crits apart from the plain hits.
+C.hitValues = {}
+function C.NoteHitValue(ev)
+	local amount = tonumber(ev.amount)
+	if ev.kind ~= "damage" or not amount or amount <= 0 or ev.periodic then return end
+	-- by its meter line, its name, and its plain key ("ability:kill_command:r3" as "kill_command",
+	-- every rank one), so a skill is found however the hit names it
+	-- the meter's line decides which skill a hit is; its ability name only when it has none
+	local keys
+	if ev.meterSourceKey ~= nil then
+		keys = { ev.meterSourceKey, C.SkillKey(ev.meterSourceKey), ev.meterSource }
+	else
+		keys = { ev.meterSource, ev.abilityName, C.SkillKey(ev.meterSource or ev.abilityName) }
+	end
+	local v
+	for i = 1, 3 do
+		if keys[i] ~= nil and C.hitValues[keys[i]] then v = C.hitValues[keys[i]] end
+	end
+	if not v then v = { times = {} } end
+	for i = 1, 3 do
+		if keys[i] ~= nil then C.hitValues[keys[i]] = v end
+	end
+	if ev.critical then
+		v.crit = amount
+	else
+		v.avg = v.avg and (v.avg + (amount - v.avg) * 0.25) or amount
+		v.last = amount
+		if not v.low or amount < v.low then v.low = amount end
+		if not v.high or amount > v.high then v.high = amount end
+	end
+	local now = GetTime()
+	table.insert(v.times, now)
+	while table.getn(v.times) > 0 and (now - v.times[1] > 10 or table.getn(v.times) > 200) do table.remove(v.times, 1) end
+end
+
+-- its hits per second over the last ten seconds
+function C.HitRate(v)
+	if not v or not v.times then return 0 end
+	local now, n = GetTime(), 0
+	for i = 1, table.getn(v.times) do
+		if now - v.times[i] <= 10 then n = n + 1 end
+	end
+	return n / 10
+end
+
 function C.Short(n)
 	n = n or 0
 	local neg = n < 0
@@ -1047,11 +1102,13 @@ function C.SetUnlocked(on)
 	if C.timerLock then C.timerLock(not C.unlocked) end
 end
 
+C.resetStamp = 0 -- counts the resets (the chat watches it)
 function C.ResetPositions()
 	local root = C.Root()
 	root.pos = {}
 	for i = 1, table.getn(C.movers) do C.ApplyPos(C.movers[i]) end
 	if C.timerReset then C.timerReset() end
+	C.resetStamp = C.resetStamp + 1
 end
 
 ------------------------------------------------------------------------ parts, for the hub
