@@ -122,11 +122,12 @@ local PRESET_NOTES = {
 
 -- How the numbers move, picked apart from the style (in STACK: Lua 5.0 allows 200 locals).
 -- What a crit wears behind its number (in STACK: Lua 5.0 allows 200 locals): an original picture
--- each, drawn by dev/art/make_art20.py.
+-- each, drawn by dev/art/make_art20.py. It bursts in with the crit (swelling past its size and
+-- settling, a bright flash easing off) and breathes softly while the number stays.
 STACK.backs = {
-	order = { "none", "blood", "fire", "frost", "arcane", "holy", "shadow" },
-	names = { none = "None", blood = "Blood", fire = "Fire", frost = "Frost", arcane = "Arcane", holy = "Holy", shadow = "Shadow" },
-	tex = { blood = "NumBlood", fire = "NumFlame", frost = "NumFrost", arcane = "NumArcane", holy = "NumHoly", shadow = "NumShadow" },
+	order = { "none", "fire", "frost", "arcane", "holy", "shadow", "storm" },
+	names = { none = "None", fire = "Fire", frost = "Frost", arcane = "Arcane", holy = "Holy", shadow = "Shadow", storm = "Storm" },
+	tex = { fire = "NumFlame", frost = "NumFrost", arcane = "NumArcane", holy = "NumHoly", shadow = "NumShadow", storm = "NumStorm" },
 }
 
 STACK.motion = {
@@ -1858,11 +1859,20 @@ local function Animate(label, now, dt, ratio)
 			w.back:SetTexture((CUI.ART or "Interface\\AddOns\\CreedUI\\Art\\") .. back)
 			w.backTex = back
 		end
-		local bw = math.floor((w.block or 60) * 1.6 + 46)
+		-- the burst: up from 60% past its size in a sixth of a second, then settling back
+		local grow = Smooth(shownAge / 0.16)
+		local settle = Smooth((shownAge - 0.16) / 0.22)
+		local burst = 0.6 + 0.55 * grow - 0.15 * settle
+		local bw = math.floor(((w.block or 60) * 1.6 + 46) * burst)
 		if w.backW ~= bw then
 			w.back:SetWidth(bw)
-			w.back:SetHeight(math.min(math.floor(bw * 0.5 + 0.5), FONT_SIZE * 3))
+			w.back:SetHeight(math.min(math.floor(bw * 0.5 + 0.5), FONT_SIZE * 3.4))
 			w.backW = bw
+		end
+		local glow = 0.78 + 0.22 * (1 - Smooth(shownAge / 0.45)) + 0.06 * math.sin(now * 5 + (label.born or 0))
+		if not w.backA or math.abs(w.backA - glow) > 0.01 then
+			w.back:SetAlpha(Clamp(glow, 0, 1))
+			w.backA = glow
 		end
 		if not w.backShown then
 			w.back:Show()
@@ -2518,7 +2528,7 @@ local function Help()
 	Print(L("/creed numbers crowd - merge a spell hitting 3+ enemies, on or off"))
 	Print(L("/creed numbers spells - merge every spell, on or off"))
 	Print(L("/creed numbers smooth, fountain, rise or impact - how the numbers move"))
-	Print(L("/creed numbers backdrop none, blood, fire, frost, arcane, holy or shadow - behind crits"))
+	Print(L("/creed numbers backdrop none, fire, frost, arcane, holy, shadow or storm - behind crits"))
 	Print(L("/creed numbers font <name> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One..."))
 	Print(L("/creed numbers preview - show some pretend numbers"))
 	Print(L("/creed numbers reset - default settings"))

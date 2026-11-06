@@ -1,0 +1,32 @@
+-- The target's dragons and the class looks: a boss targeted by a warrior (out/theme_boss.txt),
+-- then a guardian targeted by a hero of each class, in its theme (out/theme_<key>.txt).
+MOCK_SCRATCH = arg[1]
+local DIR, OUT = arg[2], arg[3]
+dofile(MOCK_SCRATCH .. "/cui/mock_cui.lua")
+dofile(MOCK_SCRATCH .. "/bt/sim.lua")
+local M = MOCK
+M.InstallAPI()
+M.unit.player.class = "Warrior"
+M.phase = "ready"
+M.Load(DIR)
+for i = 1, 20 do M.Frame(1 / 30) end
+SIM.StartRun("scholomance", { killAfter = 120 })
+M.runTime = 300
+SIM.Publish()
+SIM.Advance(1, 1 / 30)
+local function target(kind, name, hp, hpm)
+	AZS_TARGET = { kind = kind, id = 9, name = name, hp = hp, hpm = hpm, state = 0 }
+	M.unit.target = { exists = true, name = name, hp = hp, hpm = hpm, level = 63, hostile = true }
+	M.Fire("PLAYER_TARGET_CHANGED")
+end
+target("boss", "Kirtonos the Herald", 72000, 100000)
+SIM.Advance(2, 1 / 30)
+M.Dump(OUT .. "/theme_boss.txt")
+target("guardian", "Risen Construct", 5000, 6000)
+for _, key in ipairs({ "warrior", "paladin", "hunter", "rogue", "mage", "druid", "shaman", "priest", "warlock" }) do
+	M.unit.player.class = string.upper(string.sub(key, 1, 1)) .. string.sub(key, 2)
+	M.Fire("PLAYER_ENTERING_WORLD")
+	SIM.Advance(2, 1 / 30)
+	M.Dump(OUT .. "/theme_" .. key .. ".txt")
+end
+print("problems: " .. table.getn(M.problems))

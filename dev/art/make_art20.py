@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Creed UI's crit backdrops (original), drawn behind a critical hit's number, each a wide shape
-in its own colors: Blood (a splatter with droplets), Fire (a burst of flames), Frost (an ice star),
-Arcane (a ring of runes), Holy (a sunburst), Shadow (a curl of smoke). BLP2 + PNG, 256x128.
+"""Creed UI's crit backdrops (original), drawn behind a critical hit's number, each a wide burst in
+its own colors with a bright heart: Fire (flame tongues and embers), Frost (an ice snowflake with
+sparkles), Arcane (a swirling vortex with sparks), Holy (a sunburst), Shadow (tendrils from a void,
+a violet rim), Storm (forked lightning). BLP2 + PNG, 256x128. (1.20.4 redrew them; Blood is gone.)
 
     python3 make_art20.py <blp dir> <png dir>
 """
@@ -69,101 +70,142 @@ def mix(a, b, t):
     return np.array(a) * (1 - t) + np.array(b) * t
 
 
-def blood():
-    # a wide splatter: a lumpy body, longer streaks to the sides, and droplets flung round it
-    rr = np.sqrt((x / 1.55) ** 2 + (y / 0.62) ** 2)
-    body = rr - 0.82 - 0.16 * noise(5, 1) - 0.07 * noise(2, 2)
-    m = cover(body * 0.4, 3)
-    for k in range(9):
-        a = rng.uniform(-np.pi, np.pi)
-        L = rng.uniform(0.2, 0.55)
-        cx, cy = np.cos(a) * 1.25, np.sin(a) * 0.5
-        dx, dy = x - cx, y - cy
-        along = dx * np.cos(a) + dy * np.sin(a)
-        across = -dx * np.sin(a) + dy * np.cos(a)
-        streak = np.sqrt((along / L) ** 2 + (across / 0.05) ** 2) - 1
-        m = np.maximum(m, cover(streak * 0.05, 2))
-    for k in range(26):
-        a = rng.uniform(-np.pi, np.pi)
-        d = rng.uniform(1.0, 1.45)
-        cx, cy = np.cos(a) * d * 1.55, np.sin(a) * d * 0.62
-        s = rng.uniform(0.025, 0.07)
-        m = np.maximum(m, cover(np.sqrt((x - cx) ** 2 + (y - cy) ** 2) - s))
-    shade = blur(m, 2.5)
-    col = mix([0.30, 0.0, 0.02], [0.78, 0.04, 0.06], shade)
-    # a wet sheen toward the top
-    col = col + np.clip(blur(m, 1) - blur(m, 4), 0, 1)[..., None] * np.array([0.6, 0.15, 0.15]) * np.clip(-y + 0.2, 0, 1)[..., None]
-    finish("NumBlood", np.clip(col, 0, 1), m * 0.92)
+
+def sparks(n, seed, rmin, rmax, size, sx=1.7, sy=0.8):
+    """small bright points flung round the heart"""
+    g = np.random.default_rng(seed)
+    m = np.zeros_like(x)
+    for k in range(n):
+        a = g.uniform(-np.pi, np.pi)
+        d = g.uniform(rmin, rmax)
+        cx, cy = np.cos(a) * d * sx, np.sin(a) * d * sy
+        s = g.uniform(size * 0.5, size)
+        m = np.maximum(m, np.exp(-((x - cx) ** 2 + (y - cy) ** 2) / (s * s)))
+    return m
+
+
+def stretch(sx=1.75, sy=0.85):
+    return np.sqrt((x / sx) ** 2 + (y / sy) ** 2)
 
 
 def fire():
-    # tongues of flame licking out from a hot heart, wider than tall, leaning upward
-    flick = 0.35 + 0.25 * np.abs(np.sin(ang * 7 + 0.4)) + 0.2 * np.abs(np.sin(ang * 13 + 1.1)) + 0.15 * noise(3, 3)
-    up = np.clip(-y, 0, 1) * 0.18
-    rr = np.sqrt((x / 1.6) ** 2 + (y / 0.9) ** 2)
-    m = cover((rr - (0.48 + flick * 0.36 + up)) * 0.3, 6)
-    heat = np.clip(1 - rr / (0.52 + flick * 0.36 + up), 0, 1)
-    col = mix([0.65, 0.08, 0.0], [1.0, 0.55, 0.05], heat * 1.3)
-    col = mix(col, [1.0, 0.92, 0.55], np.clip(heat * 2 - 1, 0, 1))
-    finish("NumFlame", col, m * np.clip(0.35 + heat, 0, 1) * 0.95)
+    rr = stretch(1.7, 0.85)
+    # sharp tongues: the burst's edge leaps out at many angles, longer upward
+    edge = 0.42 + 0.3 * np.abs(np.sin(ang * 9 + 0.3)) ** 3 + 0.18 * np.abs(np.sin(ang * 17 + 1.7)) ** 4 \
+        + 0.1 * noise(2.5, 11) + np.clip(-np.sin(ang), 0, 1) * 0.12
+    body = np.clip(1 - rr / edge, 0, 1)
+    m = np.clip(body * 2.4, 0, 1)
+    heat = body ** 0.7
+    col = mix([0.55, 0.05, 0.0], [1.0, 0.45, 0.03], heat * 1.6)
+    col = mix(col, [1.0, 0.95, 0.70], np.clip(heat * 2.4 - 1.3, 0, 1))
+    em = sparks(26, 12, 0.75, 1.15, 0.035)
+    col = mix(col, [1.0, 0.75, 0.25], em)
+    m = np.clip(np.maximum(m, em), 0, 1)
+    finish("NumFlame", np.clip(col, 0, 1), m * 0.95)
 
 
 def frost():
-    # a star of ice shards: long points left and right, shorter ones between, a cold glow inside
     m = np.zeros_like(x)
-    for k in range(12):
-        a = k * np.pi / 6 + rng.uniform(-0.08, 0.08)
-        L = (1.85 if k in (0, 6) else rng.uniform(0.6, 1.05))
-        if k in (3, 9):
-            L = 0.9
-        along = x * np.cos(a) + y * np.sin(a)
-        across = -x * np.sin(a) + y * np.cos(a)
-        shard = np.where(along > 0, np.abs(across) - 0.11 * (1 - along / L), 1)
-        m = np.maximum(m, cover(shard * 1.0, 1.5) * (along < L))
-    glow = np.exp(-(x / 1.0) ** 2 - (y / 0.5) ** 2)
-    m = np.clip(m * 0.9 + glow * 0.55, 0, 1)
-    facet = 0.6 + 0.4 * np.sign(np.sin(ang * 12))
-    col = mix([0.20, 0.45, 0.85], [0.80, 0.95, 1.0], np.clip(glow * 0.8 + facet * 0.25, 0, 1))
-    finish("NumFrost", col, m * 0.85)
+    # six-armed snowflake, stretched wide: each arm a tapering shard with two side barbs
+    for k in range(6):
+        a = k * np.pi / 3
+        ca, sa = np.cos(a), np.sin(a)
+        L = 1.0
+        X, Y = x / 1.7, y / 0.85
+        along = X * ca + Y * sa
+        across = -X * sa + Y * ca
+        arm = np.where((along > 0) & (along < L), np.abs(across) - 0.05 * (1 - along / L), 1)
+        m = np.maximum(m, cover(arm * 0.45, 1.5))
+        for t in (0.45, 0.7):
+            for side in (-1, 1):
+                b = a + side * 0.6
+                bx, by = X - ca * t, Y - sa * t
+                al = bx * np.cos(b) + by * np.sin(b)
+                ac = -bx * np.sin(b) + by * np.cos(b)
+                bl = 0.3 * (1.2 - t)
+                barb = np.where((al > 0) & (al < bl), np.abs(ac) - 0.03 * (1 - al / bl), 1)
+                m = np.maximum(m, cover(barb * 0.45, 1.5))
+    glow = np.exp(-(stretch(1.0, 0.5)) ** 2 * 2.0)
+    sp = sparks(30, 21, 0.4, 1.1, 0.03)
+    a_ = np.clip(m * 0.95 + glow * 0.6 + sp, 0, 1)
+    col = mix([0.25, 0.55, 0.95], [0.85, 0.97, 1.0], np.clip(glow * 0.9 + m * 0.35 + sp, 0, 1))
+    finish("NumFrost", col, a_ * 0.92)
 
 
 def arcane():
-    # a ring of violet light with rune ticks round it and a soft heart
-    rr = np.sqrt((x / 1.75) ** 2 + (y / 0.86) ** 2)
-    ring = np.exp(-((rr - 0.86) / 0.035) ** 2) + 0.5 * np.exp(-((rr - 0.72) / 0.02) ** 2)
-    ticks = (np.abs(np.sin(ang * 18)) > 0.82) * np.exp(-((rr - 0.79) / 0.045) ** 2)
-    runes = (np.abs(np.sin(ang * 6 + 0.5)) > 0.94) * cover((np.abs(rr - 0.79) - 0.06) * 0.2, 2)
-    heart = np.exp(-(rr / 0.55) ** 2) * 0.55
-    m = np.clip(ring + ticks + runes + heart, 0, 1)
-    col = mix([0.45, 0.15, 0.85], [0.95, 0.75, 1.0], np.clip(ring + ticks, 0, 1))
-    finish("NumArcane", col, m * 0.9)
+    # a vortex: spiral arms sweeping round a white-violet heart, sparks flung out on the swirl
+    rr = stretch(1.7, 0.85)
+    swirl = np.sin(ang * 3 - rr * 9.0)
+    arms = np.clip((swirl - 0.15) / 0.85, 0, 1) ** 1.5 * np.clip(1 - rr / 1.0, 0, 1)
+    heart = np.exp(-(rr / 0.28) ** 2)
+    halo = np.exp(-(rr / 0.6) ** 2) * 0.5
+    sp = sparks(28, 31, 0.6, 1.1, 0.032)
+    m = np.clip(arms * 1.3 + heart + halo + sp, 0, 1)
+    col = mix([0.40, 0.08, 0.80], [0.85, 0.40, 1.0], np.clip(arms + halo, 0, 1))
+    col = mix(col, [1.0, 0.92, 1.0], np.clip(heart * 1.4 + sp, 0, 1))
+    finish("NumArcane", np.clip(col, 0, 1), m * 0.92)
 
 
 def holy():
-    # a sunburst: golden rays from a bright heart, the long ones to the sides
-    rays = np.abs(np.cos(ang * 8)) ** 6 * 0.7 + np.abs(np.cos(ang * 16 + 0.2)) ** 10 * 0.4
-    stretch = np.sqrt((x / 1.8) ** 2 + (y / 0.9) ** 2)
-    m = np.clip(rays * np.clip(1 - stretch, 0, 1) * 1.8, 0, 1)
-    heart = np.exp(-(stretch / 0.35) ** 2)
-    m = np.clip(m + heart, 0, 1)
-    col = mix([1.0, 0.70, 0.20], [1.0, 0.97, 0.80], np.clip(heart * 1.2 + rays * 0.3, 0, 1))
-    finish("NumHoly", col, m * 0.9)
+    # a sunburst: golden rays from a bright heart, the long ones to the sides, a soft halo
+    rays = np.abs(np.cos(ang * 8)) ** 6 * 0.75 + np.abs(np.cos(ang * 16 + 0.2)) ** 10 * 0.45
+    rr = stretch(1.8, 0.9)
+    m = np.clip(rays * np.clip(1 - rr, 0, 1) * 2.0, 0, 1)
+    heart = np.exp(-(rr / 0.33) ** 2)
+    halo = np.exp(-(rr / 0.6) ** 2) * 0.35
+    m = np.clip(m + heart + halo, 0, 1)
+    col = mix([1.0, 0.72, 0.22], [1.0, 0.98, 0.85], np.clip(heart * 1.3 + rays * 0.35, 0, 1))
+    finish("NumHoly", col, m * 0.95)
 
 
 def shadow():
-    # a curl of smoke: dark, soft, wider than tall, wisps rising off its top
-    rr = np.sqrt((x / 1.7) ** 2 + (y / 0.75) ** 2)
-    smoke = 1 - rr + 0.25 * noise(6, 5) + 0.12 * noise(2.5, 6) + np.clip(-y, 0, 1) * 0.15 * noise(3, 7)
-    m = np.clip(smoke * 2.2, 0, 1)
-    m = blur(m, 1.5)
-    col = mix([0.04, 0.0, 0.08], [0.32, 0.12, 0.45], np.clip(0.5 + 0.8 * noise(4, 8), 0, 1) * np.clip(m, 0, 1))
-    finish("NumShadow", col, np.clip(m, 0, 1) * 0.88)
+    # a void: a black heart with dark tendrils curling out of it, lit from behind by a violet glow
+    rr = stretch(1.7, 0.8)
+    curl = np.sin(ang * 7 + rr * 5 + 1.3 * noise(4, 41))
+    tend = np.clip((curl - 0.25) / 0.75, 0, 1) * np.clip(1 - rr / 1.0, 0, 1)
+    core = np.clip(1 - rr / 0.5, 0, 1) ** 0.6
+    dark = np.clip(core * 1.8 + tend * 1.6, 0, 1)
+    glow = np.exp(-(rr / 0.75) ** 2) * 0.95 + sparks(18, 43, 0.6, 1.0, 0.03) * 0.8
+    rim = np.clip(blur(dark, 2.0) - blur(dark, 0.6), 0, 1) * 4.0
+    col = mix([0.55, 0.20, 0.85], [0.85, 0.55, 1.0], np.clip(glow, 0, 1))   # the light behind
+    col = mix(col, [0.03, 0.0, 0.05], dark)                                   # the void over it
+    col = mix(col, [0.90, 0.60, 1.0], np.clip(rim * (1 - core), 0, 1))       # its edges lit
+    a_ = np.clip(np.maximum(dark, glow) + rim * 0.5, 0, 1)
+    finish("NumShadow", np.clip(col, 0, 1), a_ * 0.93)
 
 
-blood()
+def storm():
+    # forked lightning crackling out from a bright heart, blue-white, with a static haze
+    g = np.random.default_rng(51)
+    m = np.zeros_like(x)
+    for k in range(9):
+        a = k * 2 * np.pi / 9 + g.uniform(-0.25, 0.25)
+        px0, py0 = 0.0, 0.0
+        L = g.uniform(0.75, 1.05)
+        steps = 7
+        for s_ in range(steps):
+            t = (s_ + 1) / steps * L
+            jit = g.uniform(-0.35, 0.35)
+            nx, ny = np.cos(a + jit) * t * 1.7, np.sin(a + jit) * t * 0.85
+            # a segment from (px0,py0) to (nx,ny)
+            dx, dy = nx - px0, ny - py0
+            ln = np.hypot(dx, dy) + 1e-9
+            u = np.clip(((x - px0) * dx + (y - py0) * dy) / (ln * ln), 0, 1)
+            d = np.hypot(x - (px0 + u * dx), y - (py0 + u * dy))
+            w = 0.022 * (1 - s_ / steps) + 0.006
+            m = np.maximum(m, np.exp(-(d / w) ** 2))
+            px0, py0 = nx, ny
+    glow = blur(m, 3.0) * 2.5
+    heart = np.exp(-(stretch(1.0, 0.5) / 0.4) ** 2)
+    a_ = np.clip(m + glow * 0.6 + heart, 0, 1)
+    col = mix([0.25, 0.45, 1.0], [0.92, 0.97, 1.0], np.clip(m + heart, 0, 1))
+    finish("NumStorm", np.clip(col, 0, 1), a_ * 0.95)
+
+
 fire()
 frost()
 arcane()
 holy()
 shadow()
+storm()
 print("wrote", OUT_BLP)

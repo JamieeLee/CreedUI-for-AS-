@@ -228,6 +228,39 @@ local function StepPlayer(u, dt, now, pal)
 	C.Vis(u.tag, false)
 end
 
+------------------------------------------------------------------------ the dragon round a boss's portrait
+-- A boss targeted wears the game's own gold elite dragon round its portrait, a guardian the silver
+-- one, as the classic target frame showed them: the game's texture, turned to face out to the left,
+-- in three pieces (its head, its coils by the ring, its claws) so the old frame's bars stay out.
+local DRAGONS = { boss = "UI-TargetingFrame-Elite", final = "UI-TargetingFrame-Elite", guardian = "UI-TargetingFrame-Rare" }
+local DRAGON_PIECES = { { 130, 0, 19 }, { 149, 19, 70 }, { 130, 70, 100 } } -- texture x from, y from, y to (of 256 x 128)
+local DRAGON_SCALE = 66 / 72 -- the texture's ring is 72 across; the portrait's 66
+
+local function SetDragon(u, kind)
+	local file = kind and DRAGONS[kind]
+	if u.dragonFile == file then return end
+	u.dragonFile = file
+	if not u.dragon then
+		u.dragon = {}
+		local s = DRAGON_SCALE
+		for i = 1, table.getn(DRAGON_PIECES) do
+			local p = DRAGON_PIECES[i]
+			local t = u.faceTop:CreateTexture(nil, "ARTWORK")
+			t:SetWidth((256 - p[1]) * s)
+			t:SetHeight((p[3] - p[2]) * s)
+			-- mirrored: the texture's right edge (x 256) on the left; its ring's middle (182, 46) on the portrait's
+			t:SetPoint("TOPLEFT", u.face, "CENTER", -74 * s, (46 - p[2]) * s)
+			t:SetTexCoord(1, p[1] / 256, p[2] / 128, p[3] / 128)
+			u.dragon[i] = t
+		end
+	end
+	for i = 1, table.getn(u.dragon) do
+		if file then u.dragon[i]:SetTexture("Interface\\TargetingFrame\\" .. file) end
+		C.Vis(u.dragon[i], file and true or false)
+	end
+	C.Vis(u.ring, not file) -- the dragon brings its own ring
+end
+
 ------------------------------------------------------------------------ your target's frame
 local function StepTarget(u, dt, now, pal)
 	local exists = Call(UnitExists, "target")
@@ -247,6 +280,7 @@ local function StepTarget(u, dt, now, pal)
 	C.Alpha(u.root, C.Smooth(u.alpha))
 	if not exists then return end -- fading out: keep the last picture
 
+	SetDragon(u, (not dead) and kind or nil)
 	local name = Call(UnitName, "target") or t.name or "?"
 	local hp, hpm
 	if enemy and tonumber(t.hpm) and t.hpm > 0 then

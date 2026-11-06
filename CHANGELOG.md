@@ -1,5 +1,86 @@
 # Changelog
 
+## 1.24.2
+- **Fix: the Level Up! button, the loot pop-up, the pet bar, the run summary and the talent window now follow your class's colors.** They kept the colors of the class they were first drawn in (a warrior's run could show a mage's blue Level Up! button).
+
+## 1.24.1
+- **Shaman: a tidier crest:** just the lightning in its gold ring with its feathers sweeping down; the top wing that reached far over the bar, the flying crystal and the sparks are gone.
+
+## 1.24.0
+- **The music button is gone,** with its volume row, its `/creed music` command and its Music folder (players have their own music players).
+- **Shaman: the lightning crest** in its gold ring with blue feathers and a star (from the first class designs) on the skill bar's right end.
+
+## 1.23.4
+- **Rogue: a solid dark round behind the daggers,** so the bar no longer shows through around them.
+- **Warlock: a simpler crest,** the fel flame in its violet ring with its feathers (from the first class designs).
+
+## 1.23.3
+- **Rogue: the two crossed daggers in purple smoke** (from the first class designs) on the skill bar's left end.
+- **Hunter: the bow in its ring of leaves** (from the first class designs) on the left end.
+- **Shaman: the totem 10% bigger,** hiding the bar's ends behind it.
+- **Mage: the rune circle bright again** round the staff.
+- **Warlock: both horns** on the emblem (one had gone).
+- **Druid: the antler whole** where it crosses the bar's line, and no stray bits of the designs' own bar lines left beside any emblem.
+
+## 1.23.2
+- **The Music folder comes with Creed UI** (`CreedUI/Music`, with a short note on how to use it): drop your songs in as `1.mp3`, `2.mp3`... and play them from the minimap's music button. It holds no songs.
+
+## 1.23.1
+- **Class emblems and crests whole again:** their round faces are solid (nothing shows through around the rogue's hood, for one), their dark parts (cloaks, shadows) no longer half see-through, and the flags and capes keep every piece (only loose bits on the bar's side are tidied away).
+
+## 1.23.0
+- **New: a music button on the minimap's edge** for your own songs. Click it to play, and it turns into a pause button; click again to pause; right-click for the next song. Put your songs in `Interface\AddOns\CreedUI\Music`, named `1.mp3`, `2.mp3` and so on (Creed UI comes with none), and tell it how many with `/creed music <number>` (3 to begin with). The game's own music fades out under your song and comes back when it stops. The game can't truly pause a song, so a paused song starts over when played again.
+- **Music volume** in Creed UI Options, beside the language: − and + in steps of 10%.
+
+## 1.22.0
+- **Fix: the skill bar's class glass showed as a flat bright color in game** (its texture was too big for the game); now it shows its design.
+- **New: the Stats window.** Your run's stats at a glance, in Creed UI's glass: grouped as Offense, Survival, Area and DoTs, and Run, each under a fine header in its own color. A stat that changes glows green as it rises and red as it falls. The **+** in its head opens the list of every stat (all 29 the game keeps: damage, crit, crit damage, haste, echo, armor, lifesteal, execute, pet damage, speed, luck...) to tick the ones it shows; the **x** hides it, and Creed UI Options brings it back. Drag it to move it, and size it in the options.
+
+## 1.21.8
+- **The skill bar's inside in your class's color,** no longer near black: a glass in the class's tint with a soft light along its middle, a faint woven filigree and a brushed sheen (red for warriors, gold for paladins, green for hunters and druids, purple for rogues and warlocks, blue for mages and shamans, silver for priests).
+- **Emblems whole:** what reaches over the bar (the rogue's daggers, the druid's antlers, the hunter's bow) is no longer cut away.
+- **No loose bits:** the crests' flags (rogue, hunter, druid) and the rogue's smoke no longer leave little pieces floating beside them.
+
+## 1.21.7
+- **The look is the class you start the run with.** Creed UI reads the run's hero class as the run begins (the game's character class isn't always the run's hero), and changes look with each new run. Until a run starts it wears the last run's class.
+- **The skill bar fits the screen:** its emblem and crest are smaller (their rings as tall as the bar) and sit on the bar's ends instead of reaching far past them.
+- **Priest: the winged light crest** from the first class designs on the skill bar's right end.
+- **Sharper emblems and crests:** cut again from the class designs enlarged four times by a super-resolution upscaler, so they stay crisp in game.
+
+## 1.21.6
+- **Shaman: the carved wooden totem in its crackling lightning is back on the skill bar's left end** (from the first class designs), fitted to the new bar.
+
+## 1.21.5
+- **New class designs on the skill bar, blended in as in the designs:** every class has a new emblem on the bar's left end and crest on its right, and the bar runs naturally into them: the emblem carries the design's own bar a little way in, fading softly into Creed UI's bar, which is now painted as the design's (its gold rail lines and its inside in the class's tint: red-brown for warriors, olive for hunters, gold-brown for paladins, plum for rogues, deep blue for mages, green for druids, night blue for shamans, dark for priests, violet for warlocks). Nothing is cropped any more: everything above and below the bar (the rogue's daggers, wings, capes, horns) stays whole.
+- **The XP bar is gold again for every class,** as in the designs.
+
+## 1.21.4
+- **The UI is your class's, always.** No more theme to pick and no more bronze look (the skill bar's dragons are gone): Creed UI wears the class of the hero you play, its metal on every part and its emblem and crest on the skill bar. (The boss timer keeps its bronze.)
+- **The skill bar redrawn to fit the class designs:** its rails are each class's own (a bright line with its glow, as in the designs), its glass near black, and its XP bar in the class's color (green for hunters and druids, blue for mages and shamans, violet for warlocks, gold for the rest).
+- **The crest fits the bar exactly:** its ring is as tall as the bar, its top on the bar's top edge.
+
+## 1.21.3
+- **Class themes: a bigger crest on the skill bar's right end,** as big as the emblem on its left, covering the bar's whole right end.
+
+## 1.21.2
+- **New class emblems on the skill bar,** from the class bar designs: each class theme now has a large emblem on the bar's left end and a round crest with a ribbon on its right. **Warrior:** crossed swords on a shield with a red cape, and a helm. **Paladin:** a winged shield with a cross, and a star. **Hunter:** a bow in leaves, and a paw. **Rogue:** crossed daggers in shadow, and a hood. **Mage:** an arcane staff in blue light, and a rune star. **Druid:** antlers round a paw, and a tree. **Shaman:** a carved totem in lightning, and a storm crest. **Priest:** a winged holy shield, and a light crest. **Warlock:** a horned fel mask in violet flame, and a fel fire crest. Each is blended into the bar, not pasted on: the emblem fades softly round its own shape over the bar's left end, with a soft shadow under it, and the crest hangs over the bar's right end; both have solid round faces, so the bar never shows through them (inside the bow, for one). They replace 1.21.1's drawn emblems; Bronze keeps its dragons.
+
+## 1.21.1
+- **Each class theme has its own emblem on the skill bar's ends** in place of the dragons (Bronze keeps the dragons): the **Warrior** a round shield over crossed axes, the **Paladin** a radiant kite shield with a cross, the **Hunter** a drawn bow with its arrow pointing out, the **Rogue** crossed daggers with a gold coin and a drop of poison, the **Priest** a winged staff with a halo, the **Shaman** a carved totem under a thunderbird with lightning, the **Mage** a glowing orb in a rune ring, the **Warlock** a horned skull with fel-green eyes in a violet flame, and the **Druid** a crescent moon in antlers with leaves. Each one's gem glows softly in its class's light.
+
+## 1.21.0
+- **UI themes for every class.** Pick one in the options (**Theme**, beside Language) or with `/creed theme <name>`: **Bronze** (as before), **Your class** (follows the hero you play), or **Warrior**, **Paladin**, **Hunter**, **Rogue**, **Priest**, **Shaman**, **Mage**, **Warlock** or **Druid**. Each recolors every part's metal (rims, rails, titles, gems, glows and the panels' glass) in its class's color, and casts the skill bar's dragons in it. The boss timer keeps its bronze.
+- **Target frame: the game's own dragons.** A boss you target wears the gold elite dragon round its portrait, a guardian the silver rare one.
+
+## 1.20.5
+- **Loot pop-up: Ahn'Qiraj and Naxxramas gear in purple,** as in game; only their weapons are legendary orange.
+
+## 1.20.4
+- **Crit backdrops redrawn, and they burst in.** Each now swells in with the crit, past its size and back, with a bright flash, and breathes softly while the number stays. **Fire** is a spray of flame tongues with flying embers, **Frost** a snowflake of ice shards with frost sparkles, **Arcane** a swirling vortex with sparks, **Holy** a brighter sunburst, **Shadow** a black void with tendrils in a violet glow, and new **Storm** a crackle of forked lightning. **Blood** is gone (a saved Blood choice turns to none).
+
+## 1.20.3
+- **Loot pop-up: Tier 0.5 in purple,** as the game shows it (it was blue).
+
 ## 1.20.2
 - **Loot pop-up: each drop in its rarity's color.** The game's loot line doesn't say how rare a drop is, so Creed UI knows it by the piece's set or weapon name, in any of the game's languages: Common in white, Uncommon in green, Rare and Tier 0.5 in blue, Epic in purple, Legendary in orange.
 

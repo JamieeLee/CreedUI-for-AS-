@@ -486,3 +486,27 @@ None
 Blood
 font: 
 /creed numbers font <name> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One...
+Storm
+/creed numbers backdrop none, fire, frost, arcane, holy, shadow or storm - behind crits
+Theme: {1}
+theme: {1}
+/creed theme followed by one of: {1}
+Bronze
+Your class
+Warrior
+Paladin
+Hunter
+Rogue
+Priest
+Shaman
+Mage
+Warlock
+Druid
+Stats
+Vs Elites
+Vs Controlled
+Shielded
+Pick the stats to show
+Hide the stats window (Creed UI Options brings it back)
+the stats window stopped after an error: 
+Your run's stats at a glance, grouped (Offense, Survival, Area and DoTs, Run); a change flashes green going up, red going down. The + in its head picks the stats it shows.

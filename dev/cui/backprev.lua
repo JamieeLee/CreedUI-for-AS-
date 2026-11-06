@@ -1,4 +1,4 @@
--- 1.20.0: crit numbers on each backdrop, each in one of Creed UI's own fonts. Writes out/back_<name>.txt.
+-- 1.20.0 (1.20.4: redrawn, Storm for Blood): crit numbers on each backdrop, each in one of Creed UI's own fonts. Writes out/back_<name>.txt.
 MOCK_SCRATCH = arg[1]
 local DIR, OUT = arg[2], arg[3]
 dofile(MOCK_SCRATCH .. "/cui/mock_cui.lua")
@@ -10,7 +10,7 @@ M.Load(DIR)
 for i = 1, 20 do M.Frame(1 / 30) end
 SIM.StartRun("scholomance", { killAfter = 120 })
 SIM.Advance(1, 1 / 30)
-local looks = { { "blood", "creepster" }, { "fire", "bangers" }, { "frost", "cinzel" }, { "arcane", "uncial" }, { "holy", "pirata" }, { "shadow", "black" } }
+local looks = { { "storm", "creepster" }, { "fire", "bangers" }, { "frost", "cinzel" }, { "arcane", "uncial" }, { "holy", "pirata" }, { "shadow", "black" } }
 for i, look in ipairs(looks) do
 	M.Slash("numbers backdrop " .. look[1])
 	M.Slash("numbers font " .. look[2])

@@ -55,7 +55,10 @@ def load_tex(path):
 def font(path, size):
     key = (path, size)
     if key not in _font_cache:
-        _font_cache[key] = ImageFont.truetype(FONTS.get(path, FONTS["Fonts\\FRIZQT__.TTF"]), max(4, int(round(size))))
+        f = FONTS.get(path, FONTS["Fonts\\FRIZQT__.TTF"])
+        if not os.path.exists(f):  # a system without that font: the addon's own serif stands in
+            f = FONTS["Interface\\AddOns\\CreedUI\\Fonts\\Letters.ttf"]
+        _font_cache[key] = ImageFont.truetype(f, max(4, int(round(size))))
     return _font_cache[key]
 
 
@@ -250,6 +253,10 @@ def render(dump, out, crop, S, bg=None):
                 patch[...] = solid
             else:
                 patch = sample(load_tex(path), tc, w, h)
+                if len(rest) > 6 and rest[6] == "desat":  # SetDesaturated: grey by luminance
+                    lum = patch[..., 0] * 0.3 + patch[..., 1] * 0.59 + patch[..., 2] * 0.11
+                    patch = patch.copy()
+                    patch[..., 0] = patch[..., 1] = patch[..., 2] = lum
             g = None
             if grad != "-":
                 o, c1, c2 = grad.split(":")

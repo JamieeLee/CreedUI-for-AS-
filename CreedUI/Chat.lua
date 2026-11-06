@@ -2,7 +2,7 @@
 -- scrolls (Shift jumps to the top or the bottom), and a small arrow shows while you're scrolled up
 -- (click it to come back down). A soft glass fades in behind the lines while the mouse is over
 -- them or you type, and the typing box gets the boss timer's glass and metal lines. A window that
--- would reach under the skill bar's left dragon stops short of it. Turning this part off puts the
+-- would reach under the skill bar's left emblem stops short of it. Turning this part off puts the
 -- game's chat back as it was. With the frames unlocked (a right click on the C), a "Chat" box
 -- lies over it: drag it to move the chat, drag its corner grip to size it; both are kept.
 
@@ -177,15 +177,15 @@ local function DressInput(on)
 	end
 end
 
------------------------------------------------------------------------- clear of the dragon
--- A chat window reaching under the skill bar's left dragon gives up the end of its width, enough
--- to keep its glass clear of the dragon's head; it gets it back when the bar moves away, the part
+------------------------------------------------------------------------ clear of the emblem
+-- A chat window reaching under the skill bar's left emblem (the hero's class's) gives up the end of
+-- its width, enough to keep its glass clear of the emblem's paint; it gets it back when the bar moves away, the part
 -- is turned off, or you size the window yourself (then that width is the one it keeps clear with).
 local CLEAR_GAP, CLEAR_MIN = 6, 200
 
-local function Dragon()
+local function Emblem()
 	local bar = CreedUIBar
-	local d = bar and bar.deco and bar.deco.dragons and bar.deco.dragons[1]
+	local d = bar and bar.deco and bar.deco.emblems and bar.deco.emblems[1]
 	if not (d and bar:IsShown() and d.GetLeft and d:GetLeft()) then return nil end
 	return d, bar
 end
@@ -198,7 +198,8 @@ local function Clear(f, d, bar)
 	local want = natural
 	if d then
 		local k = bar:GetEffectiveScale() / f:GetEffectiveScale() -- a texture is in its frame's scale
-		local dl, dt = (d:GetLeft() + 4) * k, d:GetTop() * k -- the snout's tip, not the picture's edge
+		local el, et = bar.deco.LeftEnd() -- the emblem's paint, not the picture's edge
+		local dl, dt = (el or d:GetLeft()) * k, (et or d:GetTop()) * k
 		local l, b = f:GetLeft(), f:GetBottom()
 		if b - 6 < dt and l + natural + 8 > dl - CLEAR_GAP then
 			want = math.max(CLEAR_MIN, math.min(natural, dl - CLEAR_GAP - 8 - l))
@@ -218,7 +219,7 @@ end
 
 local function ClearAll(on)
 	local d, bar = nil, nil
-	if on then d, bar = Dragon() end
+	if on then d, bar = Emblem() end
 	local frames = ChatFrames()
 	for i = 1, table.getn(frames) do
 		local f = frames[i]
@@ -406,11 +407,11 @@ local function Step(dt)
 		C.Vis(W.arrow, true)
 		C.Alpha(W.arrow, C.Smooth(S.arrowA) * (0.75 + 0.25 * math.sin(GetTime() * 3)))
 	end
-	-- clear of the skill bar's dragon, looked at twice a second (the bar can move or be sized)
+	-- clear of the skill bar's emblem, looked at twice a second (the bar can move or be sized)
 	S.clearClock = (S.clearClock or 0) - dt
 	if S.clearClock <= 0 then
 		S.clearClock = 0.5
-		if Dragon() then ClearAll(true) end -- while the bar steps aside for the cards, as it was
+		if Emblem() then ClearAll(true) end -- while the bar steps aside for the cards, as it was
 	end
 	-- the game can show its own pieces again (a chat window made later, a reloaded border)
 	S.keepClock = S.keepClock - dt

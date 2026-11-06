@@ -5,7 +5,7 @@
 CreedUI = {}
 local C = CreedUI
 
-C.VERSION = "1.20.2"
+C.VERSION = "1.24.2"
 C.ART = "Interface\\AddOns\\CreedUI\\Art\\"
 C.FLAT = "Interface\\ChatFrame\\ChatFrameBackground"
 C.FONT = "Fonts\\FRIZQT__.TTF"
@@ -411,13 +411,109 @@ C.BRONZE = {
 	title = { 0.98, 0.85, 0.52 }, rim = { 0.95, 0.79, 0.44 }, gem = { 1.00, 0.78, 0.32 },
 	glow = { 1.00, 0.80, 0.45 }, trough = { 0.07, 0.05, 0.03 }, mc = { 1.00, 0.88, 0.60 },
 }
+-- The UI's theme: the hero's class, always (1.21.4, asked for: no choice, and no bronze look any
+-- more). It recolors every part's rims, titles, gems, glows and glass in the class's metal, and puts
+-- the class's emblem, crest and rails (from the user's own picture) on the skill bar; the boss timer
+-- keeps its bronze (C.BRONZE) whatever the class.
+C.UI_THEMES = {
+	{ key = "warrior", name = "Warrior", emblem = "Warrior", fill = { 0.70, 0.22, 0.14 },
+		metal = { 0.80, 0.64, 0.46 },
+		title = { 0.92, 0.80, 0.64 }, rim = { 0.80, 0.64, 0.46 }, gem = { 0.92, 0.26, 0.18 },
+		glow = { 1.00, 0.55, 0.35 }, trough = { 0.08, 0.04, 0.03 }, mc = { 0.96, 0.82, 0.64 } },
+	{ key = "paladin", name = "Paladin", emblem = "Paladin", fill = { 0.80, 0.60, 0.30 },
+		metal = { 0.96, 0.62, 0.78 },
+		title = { 1.00, 0.82, 0.90 }, rim = { 0.96, 0.62, 0.78 }, gem = { 1.00, 0.85, 0.40 },
+		glow = { 1.00, 0.75, 0.88 }, trough = { 0.07, 0.03, 0.05 }, mc = { 1.00, 0.86, 0.93 } },
+	{ key = "hunter", name = "Hunter", emblem = "Hunter", fill = { 0.42, 0.62, 0.22 },
+		metal = { 0.64, 0.82, 0.42 },
+		title = { 0.82, 0.94, 0.62 }, rim = { 0.64, 0.82, 0.42 }, gem = { 0.56, 0.88, 0.30 },
+		glow = { 0.76, 0.96, 0.56 }, trough = { 0.03, 0.06, 0.02 }, mc = { 0.86, 0.97, 0.72 } },
+	{ key = "rogue", name = "Rogue", emblem = "Rogue", fill = { 0.62, 0.32, 0.75 },
+		metal = { 0.94, 0.88, 0.40 },
+		title = { 1.00, 0.97, 0.62 }, rim = { 0.94, 0.88, 0.40 }, gem = { 1.00, 0.94, 0.34 },
+		glow = { 1.00, 0.97, 0.56 }, trough = { 0.06, 0.06, 0.02 }, mc = { 1.00, 0.98, 0.72 } },
+	{ key = "priest", name = "Priest", emblem = "Priest", fill = { 0.75, 0.72, 0.62 },
+		metal = { 0.84, 0.86, 0.92 },
+		title = { 0.97, 0.97, 1.00 }, rim = { 0.84, 0.86, 0.92 }, gem = { 0.90, 0.93, 1.00 },
+		glow = { 0.95, 0.96, 1.00 }, trough = { 0.05, 0.05, 0.07 }, mc = { 1.00, 1.00, 1.00 } },
+	{ key = "shaman", name = "Shaman", emblem = "Shaman", fill = { 0.18, 0.45, 0.90 },
+		metal = { 0.30, 0.58, 0.95 },
+		title = { 0.58, 0.82, 1.00 }, rim = { 0.30, 0.58, 0.95 }, gem = { 0.32, 0.66, 1.00 },
+		glow = { 0.46, 0.76, 1.00 }, trough = { 0.02, 0.04, 0.08 }, mc = { 0.66, 0.86, 1.00 } },
+	{ key = "mage", name = "Mage", emblem = "Mage", fill = { 0.25, 0.50, 0.95 },
+		metal = { 0.48, 0.82, 0.95 },
+		title = { 0.72, 0.93, 1.00 }, rim = { 0.48, 0.82, 0.95 }, gem = { 0.56, 0.88, 1.00 },
+		glow = { 0.66, 0.92, 1.00 }, trough = { 0.02, 0.05, 0.07 }, mc = { 0.80, 0.95, 1.00 } },
+	{ key = "warlock", name = "Warlock", emblem = "Warlock", fill = { 0.62, 0.20, 0.75 },
+		metal = { 0.64, 0.55, 0.86 },
+		title = { 0.84, 0.76, 1.00 }, rim = { 0.64, 0.55, 0.86 }, gem = { 0.64, 0.42, 0.96 },
+		glow = { 0.76, 0.64, 1.00 }, trough = { 0.04, 0.03, 0.07 }, mc = { 0.86, 0.80, 1.00 } },
+	{ key = "druid", name = "Druid", emblem = "Druid", fill = { 0.40, 0.65, 0.20 },
+		metal = { 1.00, 0.58, 0.16 },
+		title = { 1.00, 0.76, 0.44 }, rim = { 1.00, 0.58, 0.16 }, gem = { 1.00, 0.56, 0.10 },
+		glow = { 1.00, 0.68, 0.30 }, trough = { 0.07, 0.04, 0.01 }, mc = { 1.00, 0.82, 0.52 } },
+}
+C.UI_THEME = C.UI_THEMES[1]
+C.uiTheme = "warrior"
+
+local function FindTheme(key)
+	for i = 1, table.getn(C.UI_THEMES) do
+		if C.UI_THEMES[i].key == key then return C.UI_THEMES[i] end
+	end
+end
+
+-- the hero's class as a theme key: the class of the hero this run was started with (read from the
+-- run's own loadout: its hero's classKey; asked for, as the game's character class needn't be the
+-- run's hero's), else the last run's (kept in the settings), else the game's class, else a warrior
+local function ClassKey(v)
+	if type(v) ~= "string" then return nil end
+	local _, _, word = string.find(string.lower(v), "(%a+)$")
+	return word and FindTheme(word) and word or nil
+end
+function C.HeroClass()
+	if C.runClass then return C.runClass end
+	local saved = CreedUIDB and ClassKey(CreedUIDB.heroClass)
+	if saved then return saved end
+	local _, class = UnitClass("player")
+	return ClassKey(class) or "warrior"
+end
+
+-- each run's hero class, read once its loadout is in (looked at every second until then)
+local classRun, classAsked = nil, 0
+function C.WatchRunClass(now)
+	if now - classAsked < 1 or type(AZS_GetMeterContext) ~= "function" or type(AZS_GetMeterLoadout) ~= "function" then return end
+	classAsked = now
+	local context = C.Call(AZS_GetMeterContext)
+	if type(context) ~= "table" or not context.runId or context.runId == classRun then return end
+	local l = C.Call(AZS_GetMeterLoadout, { apiVersion = 1, runId = context.runId })
+	local me = type(l) == "table" and type(l.actors) == "table" and l.actors[context.localOwnerId or l.ownerId or ""]
+	local class = type(me) == "table" and ClassKey(me.classKey)
+	if not class then return end
+	classRun, C.runClass = context.runId, class
+	if CreedUIDB then CreedUIDB.heroClass = class end
+	C.SetTheme("class")
+end
+
+-- puts on a class's theme ("class": the hero's) and recolors every part
+function C.SetTheme(key)
+	if key == "class" then key = C.HeroClass() end
+	local t = FindTheme(key)
+	if not t then return false end
+	C.uiTheme = key
+	if t ~= C.UI_THEME then
+		C.UI_THEME = t
+		C.palStamp = C.palStamp + 1
+	end
+	return true
+end
+
 local bronzed, bronzedFrom, bronzedAt = {}, nil, nil
 function C.Pal()
 	local base = C.pal or C.DEFAULT_PAL
 	if base ~= bronzedFrom or C.palStamp ~= bronzedAt then
 		bronzedFrom, bronzedAt = base, C.palStamp
 		for k, v in pairs(base) do bronzed[k] = v end
-		for k, v in pairs(C.BRONZE) do bronzed[k] = v end
+		for k, v in pairs(C.BRONZE) do bronzed[k] = C.UI_THEME[k] or v end
 	end
 	return bronzed
 end
@@ -844,25 +940,31 @@ end
 
 ------------------------------------------------------------------------ an MMO panel
 -- A panel in the timer's metal: brushed dark glass inside a thin round rail lit as the timer's
--- (darkish bronze, one fine bright line on its lit side), the timer's diamonds on its corners,
--- and (asked for) a golden dragon perched on each end, facing out, wings raised, its eye glowing:
--- painted, from the user's own bar picture (dev/art/cut_dragon.py), in its own colors. It straddles
--- the panel's end, the end rail running behind its body, head and chest out past it, its wing back
--- over the bar; the panel leaves C.PANEL_ROOM at each end for the wing, so it never covers a slot.
-local P_RAIL, P_CORNER, P_DRAGON = 8, 16, 122
--- how far it reaches past the panel's end (its front 40% of the picture), and below its foot (25 of 370)
-local P_OUT, P_FOOT = P_DRAGON * 0.40, P_DRAGON * 25 / 370
-C.PANEL_ROOM = math.floor(P_DRAGON - P_OUT + 6)
--- Creed UI's gold, taken from the user's bar picture (dev/art/source/bar_reference.webp): the panel's
--- metal is its bright rail; its light rail highlight (0.98, 0.85, 0.52) is the gold of titles and
--- tooltip heads everywhere, its rail gold (0.91, 0.70, 0.30) the gold of borders and rims
-local GOLD = { 0.95, 0.79, 0.44 }
--- the dragon's eye in its picture, as shares of it (the picture faces right; the left dragon is it
--- mirrored, so both face out)
-local EYE_X, EYE_Y = 0.872, 0.236
+-- (one fine bright line on its lit side), the timer's diamonds on its corners. The skill bar's (asked
+-- for) wears the hero's class: its emblem on the left end, its crest on the right, its rails, all from
+-- the user's own picture (dev/art/cut_classes.py); the panel leaves C.PANEL_ROOM at each end for them,
+-- so they never cover a slot. (Until 1.21.4 a painted dragon stood on each end, in a bronze look.)
+local P_RAIL, P_CORNER = 8, 16
+C.PANEL_ROOM = 79
+-- Creed UI's gold, taken from the user's bar picture (dev/art/source/bar_reference.webp): borders and
+-- rims (0.91, 0.70, 0.30), titles and tooltip heads (0.98, 0.85, 0.52), panel metal (0.95, 0.79, 0.44)
+-- a class's emblem and crest (dev/art/cut_classes.py): 512x256 textures whose rails lie 110 of their
+-- pixels apart; the emblem's middle is at 220 across its picture and the crest's at 292, on the line
+-- between the rails. Drawn at 0.85 of the panel's scale (asked for: the bar fit the screen), their rings
+-- as tall as the panel, their middles EMBLEM_IN in from its two ends
+local EMBLEM_U = 76 / 110 * 0.85
+local EMBLEM_W, EMBLEM_H = 512 * EMBLEM_U, 256 * EMBLEM_U
+local EMBLEM_L, EMBLEM_R, EMBLEM_IN = 220, 292, 24
+-- the class's rails (PanelRail<Class>T / B, 16 pixels tall round their line) at the same scale
+local RAIL_TH = 16 * 76 / 110
 
-function C.Panel(frame, dragons)
+-- every panel, so a new class recolors them all (1.24.2: the Level Up! button, the loot pop-up, the
+-- pet bar, the summary and the talent window kept the class they were made in)
+C.panels = {}
+
+function C.Panel(frame, emblems)
 	local p = { frame = frame, metal = {} }
+	table.insert(C.panels, p)
 	p.fill = C.Tex(frame, "BACKGROUND", C.ART .. "PanelFill")
 	p.fill:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -2)
 	p.fill:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2, 2)
@@ -873,70 +975,107 @@ function C.Panel(frame, dragons)
 		table.insert(p.metal, t)
 		return t
 	end
-	Rail("PanelRailT", "TOPLEFT", P_CORNER, 0, "TOPRIGHT", -P_CORNER, 0):SetHeight(P_RAIL)
-	Rail("PanelRailB", "BOTTOMLEFT", P_CORNER, 0, "BOTTOMRIGHT", -P_CORNER, 0):SetHeight(P_RAIL)
-	Rail("PanelRailL", "TOPLEFT", 0, -P_CORNER, "BOTTOMLEFT", 0, P_CORNER):SetWidth(P_RAIL)
-	Rail("PanelRailR", "TOPRIGHT", 0, -P_CORNER, "BOTTOMRIGHT", 0, P_CORNER):SetWidth(P_RAIL)
+	p.railT = Rail("PanelRailT", "TOPLEFT", P_CORNER, 0, "TOPRIGHT", -P_CORNER, 0)
+	p.railT:SetHeight(P_RAIL)
+	p.railB = Rail("PanelRailB", "BOTTOMLEFT", P_CORNER, 0, "BOTTOMRIGHT", -P_CORNER, 0)
+	p.railB:SetHeight(P_RAIL)
+	-- the end pieces (the end rails, corners and their diamonds), which the skill bar's emblem and
+	-- crest stand over
+	p.ends = {}
+	local railL = Rail("PanelRailL", "TOPLEFT", 0, -P_CORNER, "BOTTOMLEFT", 0, P_CORNER)
+	railL:SetWidth(P_RAIL)
+	local railR = Rail("PanelRailR", "TOPRIGHT", 0, -P_CORNER, "BOTTOMRIGHT", 0, P_CORNER)
+	railR:SetWidth(P_RAIL)
+	table.insert(p.ends, railL)
+	table.insert(p.ends, railR)
 	for _, c in ipairs({ { "TOPLEFT", "TL", 1, -1 }, { "TOPRIGHT", "TR", -1, -1 }, { "BOTTOMLEFT", "BL", 1, 1 }, { "BOTTOMRIGHT", "BR", -1, 1 } }) do
 		local t = C.Tex(frame, "BORDER", C.ART .. "PanelCorner" .. c[2])
 		t:SetWidth(P_CORNER)
 		t:SetHeight(P_CORNER)
 		t:SetPoint(c[1], frame, c[1], 0, 0)
 		table.insert(p.metal, t)
+		table.insert(p.ends, t)
 		-- the timer's diamond on the corner
 		local d = C.Tex(frame, "ARTWORK", C.ART .. "Diamond")
 		d:SetWidth(13)
 		d:SetHeight(13)
 		d:SetPoint("CENTER", frame, c[1], c[3] * 2, c[4] * 2)
 		table.insert(p.metal, d)
+		table.insert(p.ends, d)
 	end
-	if dragons then
-		-- a dragon on each end, facing out, perched on the panel's end
-		p.dragons, p.eyes = {}, {}
-		p.eyeLayer = CreateFrame("Frame", nil, frame)
-		p.eyeLayer:SetAllPoints(frame)
-		local out = P_OUT
-		for i, side in ipairs({ "LEFT", "RIGHT" }) do
-			local k = (side == "LEFT") and -1 or 1
-			local t = C.Tex(frame, "OVERLAY", C.ART .. "PanelDragon")
-			t:SetWidth(P_DRAGON)
-			t:SetHeight(P_DRAGON)
-			t:SetPoint("BOTTOM" .. side, frame, "BOTTOM" .. side, k * out, -P_FOOT)
-			if k < 0 then t:SetTexCoord(1, 0, 0, 1) end
-			p.dragons[i] = t
-			local ex = (k < 0) and (-out + (1 - EYE_X) * P_DRAGON) or (out - (1 - EYE_X) * P_DRAGON)
-			local e = C.Tex(p.eyeLayer, "OVERLAY", C.ART .. "Glow", "ADD")
-			e:SetWidth(8)
-			e:SetHeight(8)
-			e:SetPoint("CENTER", frame, "BOTTOM" .. side, ex, -P_FOOT + P_DRAGON * (1 - EYE_Y))
-			p.eyes[i] = e
+	if emblems then
+		p.emblems = {}
+		for i = 1, 2 do p.emblems[i] = C.Tex(frame, "OVERLAY", C.ART .. "Glow") end
+		-- the end pieces step aside: the emblem and the crest stand over the ends
+		for i = 1, table.getn(p.ends) do p.ends[i]:Hide() end
+		-- a class's emblem on the left end, its crest on the right, its rails running whole from under
+		-- the one to under the other (its line and glow as the picture paints them)
+		p.PlaceEnds = function(emblem)
+			for _, r in ipairs({ { p.railT, "T", "TOPLEFT", "TOPRIGHT", 1 }, { p.railB, "B", "BOTTOMLEFT", "BOTTOMRIGHT", -1 } }) do
+				local t = r[1]
+				t:ClearAllPoints()
+				t:SetTexture(C.ART .. "PanelRail" .. emblem .. r[2])
+				t:SetHeight(RAIL_TH)
+				local y = r[5] * (RAIL_TH / 2 - P_RAIL / 2)
+				t:SetPoint(r[3], frame, r[3], 0, y)
+				t:SetPoint(r[4], frame, r[4], 0, y)
+			end
+			for i, side in ipairs({ "LEFT", "RIGHT" }) do
+				local t = p.emblems[i]
+				t:ClearAllPoints()
+				t:SetTexture(C.ART .. "PanelEmblem" .. emblem .. ((i == 1) and "L" or "R"))
+				t:SetWidth(EMBLEM_W)
+				t:SetHeight(EMBLEM_H)
+				local x = (i == 1) and (EMBLEM_IN - EMBLEM_L * EMBLEM_U) or (-EMBLEM_IN - EMBLEM_R * EMBLEM_U)
+				t:SetPoint("TOPLEFT", frame, side, x, EMBLEM_H / 2)
+			end
+		end
+		-- where the left end's art begins (the chat keeps clear of it): the emblem's round (about 70 of
+		-- its pixels round its middle, at 220, 128), its wings and capes free to reach past
+		p.LeftEnd = function()
+			local t = p.emblems[1]
+			if not (t:GetLeft() and t:GetTop()) then return nil end
+			return t:GetLeft() + 150 * EMBLEM_U, t:GetTop() - 52 * EMBLEM_U
 		end
 	end
 	return p
 end
 
 function C.PanelMetal(pal)
-	return GOLD[1], GOLD[2], GOLD[3]
+	local m = C.UI_THEME.metal
+	return m[1], m[2], m[3]
 end
 
 function C.PanelTheme(p, pal)
+	p.themed = true
 	local tr = pal.trough
 	local mr, mg, mb = C.PanelMetal(pal)
 	for i = 1, table.getn(p.metal) do p.metal[i]:SetVertexColor(mr, mg, mb) end
 	p.fill:SetVertexColor(0.5 + tr[1] * 0.3, 0.47 + tr[2] * 0.3, 0.44 + tr[3] * 0.3, 0.95)
-	if p.dragons then
-		for i = 1, 2 do
-			p.dragons[i]:SetVertexColor(1, 1, 1) -- painted in its own gold
-			p.eyes[i]:SetVertexColor(1, 0.62, 0.14, 0.95) -- the eyes glow amber, as painted
+	if p.emblems then
+		-- the hero's class's emblem, crest and rails, in their own paint; the glass in the class's color
+		local emblem = C.UI_THEME.emblem
+		if p.emblem ~= emblem then
+			p.emblem = emblem
+			p.PlaceEnds(emblem)
 		end
+		p.railT:SetVertexColor(1, 1, 1)
+		p.railB:SetVertexColor(1, 1, 1)
+		-- the class's glass (1.21.8, asked for: its color, not black): Art/PanelGlass, its filigree and
+		-- middle light, tinted with the theme's fill
+		-- (should the game not show it, SetTexture answers nothing: the panel's own glass, darkened
+		-- to the class's color, rather than a flat bright one)
+		if p.glassSet == nil then
+			p.glassSet = p.fill:SetTexture(C.ART .. "PanelGlass") and true or false
+			if not p.glassSet then p.fill:SetTexture(C.ART .. "PanelFill") end
+		end
+		local f = C.UI_THEME.fill
+		local k = p.glassSet and 1 or 0.45
+		p.fill:SetVertexColor(f[1] * k, f[2] * k, f[3] * k, 0.97)
 	end
 end
 
--- the dragons' eyes smoulder
 function C.PanelStep(p, now)
-	if not p.eyes then return end
-	local a = 0.75 + 0.2 * math.sin(now * 2.2)
-	for i = 1, 2 do C.Alpha(p.eyes[i], a) end
 end
 
 ------------------------------------------------------------------------ calling the game safely
@@ -1630,6 +1769,26 @@ local function GuardGameMenu()
 	end)
 end
 C.OnInit(function() pcall(GuardGameMenu) end)
+-- the theme is the hero's class (1.21.4, asked for, in place of a choice in the options): put on as the
+-- addon starts and each time the hero enters the world, and as each run's hero class comes in (1.21.7)
+C.OnInit(function() C.SetTheme("class") end)
+-- the music button's settings, gone with it (1.24.0)
+C.OnInit(function() if CreedUIDB then CreedUIDB.music = nil end end)
+C.OnWorld(function() C.SetTheme("class") end)
+do
+	local watch = CreateFrame("Frame", "CreedUIClassWatch", UIParent)
+	local stamp = C.palStamp
+	watch:SetScript("OnUpdate", function()
+		pcall(C.WatchRunClass, GetTime())
+		-- a new class (or zone palette): every panel already dressed takes its colors
+		if stamp ~= C.palStamp then
+			stamp = C.palStamp
+			for i = 1, table.getn(C.panels) do
+				if C.panels[i].themed then pcall(C.PanelTheme, C.panels[i], C.Pal()) end
+			end
+		end
+	end)
+end
 
 -- is the addon this part grew out of still running? then that part stays off
 function C.OldAddon(name)

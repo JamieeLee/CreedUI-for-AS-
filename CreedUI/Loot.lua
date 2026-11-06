@@ -50,13 +50,14 @@ local LOOKS = {
 
 -- a drop's rarity by its name: a weapon by its whole name, a piece by its set's name in it (the
 -- longest found), from the game's own words in LootSets.lua; as WoW's colors: the game's Common is
--- white, Uncommon green, Rare blue, Epic purple, Legendary orange, and its Tier 0.5 blue
-local TO_QUALITY = { [0] = 1, [1] = 2, [2] = 3, [3] = 4, [4] = 5, [7] = 3 }
+-- white, Uncommon green, Rare blue, Epic purple, Legendary orange, and its Tier 0.5 purple (as in game)
+local TO_QUALITY = { [0] = 1, [1] = 2, [2] = 3, [3] = 4, [4] = 5, [7] = 4 }
 
 local function RarityOfName(name)
 	if type(name) ~= "string" then return nil end
 	local r = C.lootWeapons and C.lootWeapons[name]
-	if not r and C.lootSets then
+	if r then return TO_QUALITY[r] end
+	if C.lootSets then
 		local best = 0
 		for set, rarity in pairs(C.lootSets) do
 			local n = string.len(set)
@@ -65,6 +66,8 @@ local function RarityOfName(name)
 			end
 		end
 	end
+	-- the top sets (Ahn'Qiraj's, Naxxramas's) are epic in game: only their weapons are legendary
+	if r == 4 then return 4 end
 	return r and TO_QUALITY[r]
 end
 

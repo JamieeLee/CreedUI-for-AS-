@@ -13,7 +13,7 @@ picture of the change.
   in Rust ([github.com/samwhosung/benilla](https://github.com/samwhosung/benilla)). The game adds its
   own addon API (`AZS_*`, see section 6).
 - Addon language: **Lua 5.0** with the **1.12 widget API**.
-- Current version: **1.20.2**. Repository: <https://github.com/CreedASui/CreedUI-for-AS->.
+- Current version: **1.24.2**. Repository: <https://github.com/CreedASui/CreedUI-for-AS->.
 - 11 languages: en, fr, de, es, pt, zh, ru, ja, ko, pl, tr.
 
 ## 2. Releases
@@ -40,12 +40,14 @@ CreedUI/            the addon (this folder name is the install folder; never ren
   Locale.lua        en/fr/de/es/pt rows; Locale_<zh|ru|ja|ko|pl|tr>.lua are generated (dev/tr)
   Timer.lua         the boss timer (DON'T TOUCH unless asked: the user loves it; 1.14.2 made its rims and
                     sockets C.BRONZE and its gems red, asked for)
-  Numbers.lua       floating damage numbers (combat text API); 1.20.0: crit backdrops (STACK.backs, art
+  Numbers.lua       floating damage numbers (combat text API); 1.20.0: crit backdrops (STACK.backs; 1.20.4
+                    redrawn, Blood removed (asked for), Storm added, a burst-in and a breathing glow; art
                     by dev/art/make_art20.py) and six bundled OFL fonts (Fonts/Num*.ttf, licences in
                     Fonts/NumberFonts-LICENSE.txt; only Cinzel modified: instanced at Bold)
   Hurt.lua          damage taken as red numbers by the hero (new hits on AZS_TAKEN; the combat text
                     API carries outgoing hits only), heals got as green ones (AZS_HEALING; 1.16.1)
-  Bosses.lua        boss and mini-boss bars        Units.lua    player and target frames
+  Bosses.lua        boss and mini-boss bars        Units.lua    player and target frames (a boss targeted: the game's
+                    UI-TargetingFrame-Elite dragon round its portrait, a guardian: -Rare; 1.21.0)
   Skulls.lua        a skull over each boss (horned, red eyes) and guardian, a gold chest over each cache
                     (world anchors, kind `cache`; 1.15.0), sized by distance
   Party.lua         party frames; a friend's shield on their health (1.20.1: UnitBuff by icon, SHIELDS; the
@@ -70,7 +72,7 @@ CreedUI/            the addon (this folder name is the install folder; never ren
                     end for its painted dragons, Core's C.Panel)
   Tally.lua         kills / gold / cache, docked inside the bar's panel
   Minimap.lua       metal ring, local clock, zone name
-  MinimapButton.lua C.EdgeButton (a draggable round button on the minimap's edge): the C button only
+  MinimapButton.lua C.EdgeButton (a draggable round button on the minimap's edge): the C button
   Chests.lua        caches and guardians' lairs as pins on the minimap
   Meter.lua         damage meter (shown or hidden from the options hub since 1.14.3)
   Loot.lua          the loot pop-up (1.19.0, replacing 1.17's loot window, asked for): takes the game's
@@ -80,8 +82,11 @@ CreedUI/            the addon (this folder name is the install folder; never ren
                     ChatFrame's AddMessage. No link, icon or rarity reach Lua (the game's own toast has
                     them natively), so the icon is guessed from the name (LOOKS) and the rarity from the
                     set or weapon name (LootSets.lua, written by dev/tr/loot_sets.py from the game's
-                    "set.<class>.<rarity>" and "weapon.<class>.<n>.<rarity>" words; 1.20.2)
+                    "set.<class>.<rarity>" and "weapon.<class>.<n>.<rarity>" words; 1.20.2; Tier 0.5 is
+                    purple in game, 1.20.3; set rarity 4 (AQ, Naxx) armor is purple, only weapons orange, 1.20.5)
   Luck.lua          luck medallion (shown or hidden from the options hub since 1.14.3)
+  Stats.lua         the run's stats window (1.22.0, asked for by a player): AZS_STATS's fields, worded as
+                    the game's own character panel, grouped as Character.lua's; the + picks them (db.track)
   TinyPlates.lua    nameplates (contributor JamieeLee, 1.14.3): based on Valorless's MIT-licensed
   TinyPlatesOptions.lua  ASTinyPlates (TinyPlates-LICENSE.txt); its own panel from the hub's button
   Character.lua     the game's character window dressed: gear slots lit by rarity, the run's stats
@@ -132,13 +137,33 @@ README.md, CHANGELOG.md   (the top level holds only these, CLAUDE.md and the two
 
 **Design and code style**
 - **Art must be original.** The user doesn't want anything looking lifted from other addons. All
-  art is drawn by the scripts in `dev/art` (numpy/PIL), except the skill bar's dragon (1.14.0): cut
-  from the user's own bar picture (`dev/art/source/bar_reference.webp`, made for them with an image
-  generator) by `dev/art/cut_dragon.py`. `make_dragon.py` is the earlier drawn dragon, kept.
-- **The gold** comes from that picture: panel metal (0.95, 0.79, 0.44), titles and tooltip heads
-  (0.98, 0.85, 0.52), borders and rims (0.91, 0.70, 0.30). Use these for anything gold.
-  `C.Pal()` is the timer's zone palette with its metal (rim, title, gem, glow, trough, mc) swapped
-  for `C.BRONZE` in every zone (1.14.1, asked for): every part is bronze gold; the timer keeps its own.
+  art is drawn by the scripts in `dev/art` (numpy/PIL), except the skill bar's class emblems, crests
+  and rails: cut from the user's own picture (`dev/art/source/class_bars.webp`, made for them with an
+  image generator) by `dev/art/cut_classes.py` (it prints each class's `fill` for the theme table). (1.14.0 to 1.21.3 had dragons cut from the user's bar
+  picture, `source/bar_reference.webp`, in a bronze look; removed in 1.21.4, asked for.)
+- **The gold** comes from that bar picture: panel metal (0.95, 0.79, 0.44), titles and tooltip heads
+  (0.98, 0.85, 0.52), borders and rims (0.91, 0.70, 0.30). Still used for gold text and the timer.
+- **The UI is the hero's class (1.21.4, asked for: no choice, no bronze look).** `C.UI_THEMES` (the nine
+  classes: metal, title, rim, gem, glow, trough, mc, `fill`). `C.SetTheme("class")` runs on init, on each
+  world entry, and as each run's hero class comes in (`C.WatchRunClass`, 1.21.7: the run's loadout's
+  `actors[context.localOwnerId].classKey`; the character's class needn't be the run's hero's).
+  `C.HeroClass()`: that, else the last run's (`CreedUIDB.heroClass`), else `UnitClass("player")`, else
+  warrior. `C.Pal()` is the timer's zone palette with the class's metal over it; `C.PanelMetal` is the
+  class's `metal`. Every `C.Panel` is kept in `C.panels` and re-dressed when `C.palStamp` changes (1.24.2). The skill bar (`C.Panel(frame, true)`, `p.emblems`, `p.PlaceEnds`): the class's emblem
+  (`Art/PanelEmblem<Class>L`, 512x256) and crest (`...R`), drawn at 0.85 of the panel's scale with their
+  middles 24 in from its ends, their rings as tall as the panel, cut at their rings inside the bar's band
+  (nothing above or below it is cut); the panel's rails (`Art/PanelRail<Class>T/B`) are the picture's; its glass is `Art/PanelGlass`
+  (`dev/art/make_art22.py`, 1.21.8, asked for) tinted with the theme's `fill` (the class's color). On the
+  bar's side the left emblem keeps what's brighter than the picture's glass (daggers, antlers) up to
+  the slots; crests are cut at the ring; small loose pieces are dropped, on the bar's side only
+  (1.23.1: each round face is solid, `face`; dark cloaks count as solid: closing scaled with the
+  upscale, opening by one pixel; asked for: holes in the rogue crest's flag). Source: `dev/art/source/class_bars.webp` (1.21.5,
+  asked for); the shaman's, rogue's and hunter's left emblems and the priest's, warlock's and shaman's crests (1.23.4, 1.24.0) from `source/class_bars_first.webp` (1.21.6,
+  1.23.3, asked for); the pictures' own rail lines are found as thin horizontal lines (`RailLines`) and
+  left out, never a whole row (a crossing antler stays). Cut by
+  `dev/art/cut_classes.py`, from 4x EDSR upscales of the pictures when present (`<name>_x4.png`, made
+  by `dev/art/upscale.py`, not kept in the repository; 1.21.7, asked for: sharper). The XP bar is gold.
+  The boss timer reads `C.BRONZE` and stays bronze. `C.THEMES` and `C.themeKey` are the timer's own.
 - The look: dark glass, a gold rail, the timer's metal, diamonds on corners (`C.Panel`). Smooth,
   "eye candy", but calm.
 - **Parts:** every part registers with `C.RegisterPart` (key, name, note, get, set; optional scale),
@@ -154,7 +179,7 @@ Build Lua 5.0.3 (lua.org) and install Python 3 with numpy, Pillow, scipy, fontTo
 From `dev/`:
 
 ```
-lua50 cui/tests.lua . ../CreedUI                # 623 passed, 0 failed
+lua50 cui/tests.lua . ../CreedUI                # 626 passed, 0 failed
 lua50 cui/tiny_plates_tests.lua . ../CreedUI    # 35 passed
 lua50 cui/timer_tests.lua . ../CreedUI          # 82 passed
 lua50 cui/numbers_harness.lua . ../CreedUI/Numbers.lua   # ALL CHECKS PASSED (also with CROWD=1)
@@ -162,6 +187,7 @@ lua50 cui/smoke.lua . ../CreedUI out            # problems: 0
 lua50 cui/globals.lua . ../CreedUI              # only this, event, arg1
 lua50 cui/overflow.lua . ../CreedUI             # overflows: 0
 python3 cui/locale_check.py ../CreedUI          # LOCALE OK
+python3 cui/art_check.py ../CreedUI             # ART OK (every BLP at most 512 a side: bigger shows flat)
 ```
 
 For pictures, use a `cui/*prev.lua` scene and then `cui/render_cui.py`. To ship: bump `C.VERSION` in

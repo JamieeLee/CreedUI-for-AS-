@@ -1,7 +1,7 @@
 -- Creed UI: the skill bar. Your six run abilities and your racial, each with a cooldown that
 -- drains off its icon; the jewelry you picked from the cards (neck, two rings, two trinkets) in sockets
 -- rimmed with their rarity; your run's experience; and docked beside them your kills, gold and
--- the next cache's price (Tally.lua), all on a gold-framed panel with a golden dragon sitting on each end. Hover anything for the game's own tooltip: an ability's, or what a piece of
+-- the next cache's price (Tally.lua), all on a panel in the hero's class's look, its emblem on the left end and its crest on the right. Hover anything for the game's own tooltip: an ability's, or what a piece of
 -- jewelry gives you. While it's on, the game's bar and build rows are tucked away; turning it
 -- off brings them back. Each ability wears its rank in a little gold-rimmed box on its bottom
 -- right corner, which flashes when a card ranks it up.
@@ -184,13 +184,13 @@ local function StepDock(dt)
 	local d = C.tallyDock
 	local target = 0
 	if d and d.on then target = math.max(DOCK_ROOM, d.w or 0) + DOCK_GAP end
-	-- the strip sits at the right end of its room, so the gap before the right dragon is the left's
+	-- the strip sits at the right end of its room, so the gap before the right crest is the left's
 	C.barDockShift = (d and d.on) and math.max(0, math.max(DOCK_ROOM, d.w or 0) - (d.w or 0)) or 0
 	local w = C.Toward(S.dock or 0, target, 10, dt)
 	if math.abs(w - target) < 0.3 then w = target end
 	if w ~= S.dock then
 		S.dock = w
-		local room = C.PANEL_ROOM or 0 -- each end's room for its dragon (Core)
+		local room = C.PANEL_ROOM or 0 -- each end's room for its emblem or crest (Core)
 		root.panel:ClearAllPoints()
 		root.panel:SetPoint("TOPLEFT", root, "TOPLEFT", -room, 0)
 		root.panel:SetPoint("BOTTOMRIGHT", root, "BOTTOMRIGHT", w + room, 0)
@@ -705,9 +705,8 @@ local function Levels()
 		jewels[i].top:SetFrameLevel(base + 3)
 	end
 	C.BarLevels(xp, base + 1)
-	-- the panel under everything: the root's own level, the dragons' eyes over it
+	-- the panel under everything: the root's own level
 	root.panel:SetFrameLevel(base)
-	if root.deco.eyeLayer then root.deco.eyeLayer:SetFrameLevel(base + 1) end
 end
 
 local function Apply()
@@ -749,7 +748,7 @@ C.OnInit(function()
 		j.visible = not info.optional
 		jewels[i] = j
 	end
-	-- the panel: brushed glass in the timer's gold, a dragon on each end (Core)
+	-- the panel: brushed glass, the class's emblem, crest and rails (Core)
 	root.panel = CreateFrame("Frame", nil, root)
 	root.panel:SetPoint("TOPLEFT", root, "TOPLEFT", -(C.PANEL_ROOM or 0), 0)
 	root.panel:SetPoint("BOTTOMRIGHT", root, "BOTTOMRIGHT", C.PANEL_ROOM or 0, 0)

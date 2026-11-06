@@ -66,7 +66,12 @@ fonts are stood in for by system ones (`bt/render_bt.py`).
 All of Creed UI's art is original and drawn by these scripts (numpy and Pillow), written as BLP2
 (uncompressed) with PNG copies: `python3 art/make_artN.py <blp folder> <png folder>`. Each script's
 first lines say what it draws; later ones replace earlier ones where they share a name.
-`art/make_dragon.py` paints the skill bar's dragons. Copy the BLPs into `../CreedUI/Art`.
+Copy the BLPs into `../CreedUI/Art`.
+`art/upscale.py` makes 4x super-resolution copies of the user's class pictures (`<name>_x4.png`, not kept
+in the repository; it says where to get its model), and `art/cut_classes.py` cuts each class's skill bar
+emblem, crest and rails from them (or from the pictures themselves)
+(`cut_classes.py source/class_bars.webp <blp> <png>`). (The bronze look's dragons, from
+`source/bar_reference.webp`, were removed in 1.21.4; its golds are still Creed UI's.)
 
 ## Fonts
 

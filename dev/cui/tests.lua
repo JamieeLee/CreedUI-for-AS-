@@ -194,6 +194,23 @@ frames(20)
 check(visibleAlpha(CreedUITarget) > 0.9, "the target frame shows")
 check(findText(CreedUITarget, "^640 / 1,600$") ~= nil, "the target's real health (from the game's run data): " .. table.concat(textsUnder(CreedUITarget), " | "))
 check(findText(CreedUITarget, "^Elite$") ~= nil, "its kind")
+-- a boss targeted wears the game's gold elite dragon round its portrait; a guardian the silver one
+local function dragon(file)
+	local n = 0
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "Texture" and o.__tex and string.find(o.__tex, file .. "$") and under(o, CreedUITarget) and M.Visible(o) then n = n + 1 end
+	end
+	return n
+end
+check(dragon("UI%-TargetingFrame%-Elite") == 0 and dragon("UI%-TargetingFrame%-Rare") == 0, "an elite pack mob: no dragon")
+AZS_TARGET = { kind = "boss", id = 9, name = "Kirtonos the Herald", hp = 9000, hpm = 10000, state = 0 }
+M.unit.target = { exists = true, name = "Kirtonos the Herald", hp = 9000, hpm = 10000, level = 63, hostile = true }
+frames(10)
+check(dragon("UI%-TargetingFrame%-Elite") == 3, "a boss: the gold elite dragon round its portrait (three pieces)")
+AZS_TARGET = { kind = "guardian", id = 10, name = "Risen Construct", hp = 5000, hpm = 6000, state = 0 }
+M.unit.target = { exists = true, name = "Risen Construct", hp = 5000, hpm = 6000, level = 62, hostile = true }
+frames(10)
+check(dragon("UI%-TargetingFrame%-Rare") == 3 and dragon("UI%-TargetingFrame%-Elite") == 0, "a guardian: the silver dragon")
 M.unit.target = { exists = false }
 AZS_TARGET = { kind = "none" }
 M.Fire("PLAYER_TARGET_CHANGED")
@@ -296,6 +313,72 @@ for _, o in ipairs(M.All()) do
 end
 check(clicked >= 14, "every hub control works (" .. clicked .. ")")
 problems("hub")
+-- the themes: a class's metal on every part, the dragons cast in it, the timer still bronze
+local function near(a, b) return math.abs(a - b) < 0.01 end
+local function onBar(file)
+	local n = 0
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "Texture" and o.__tex and string.find(o.__tex, file .. "$") and under(o, CreedUIBar) and M.Visible(o) then n = n + 1 end
+	end
+	return n
+end
+-- the theme is the hero's class, no choice in the options (asked for)
+check(CreedUI.uiTheme == "rogue" and near(CreedUI.Pal().rim[1], 0.94), "your class (a rogue): the rogue's yellow metal")
+check(onBar("PanelEmblemRogueL") == 1 and onBar("PanelEmblemRogueR") == 1, "the rogue's emblem and crest on the bar")
+check(onBar("PanelRailRogueT") == 1 and onBar("PanelRailRogueB") == 1, "and the rogue's own rails along it")
+check(onBar("PanelRailL") == 0 and onBar("PanelCornerTL") == 0 and onBar("PanelRailR") == 0 and onBar("PanelCornerBR") == 0, "the panel's end pieces step aside under the emblem and the crest")
+check(CreedUIThemeMenu == nil and findText(CreedUIOptions, "^Theme") == nil, "no theme to pick in the options")
+check(near(CreedUI.BRONZE.rim[1], 0.95), "the boss timer keeps its bronze")
+M.unit.player.class = "Mage"
+M.Fire("PLAYER_ENTERING_WORLD")
+frames(5)
+local rim = CreedUI.Pal().rim
+check(near(rim[1], 0.48) and near(rim[3], 0.95), "a mage enters the world: the parts' rims turn frost blue")
+check(onBar("PanelEmblemMageL") == 1 and onBar("PanelEmblemMageR") == 1 and onBar("PanelDragon") == 0, "the mage's emblem on the left end and crest on the right")
+local fill
+for _, o in ipairs(M.All()) do
+	if o.__kind == "Texture" and o.__tex and string.find(o.__tex, "PanelGlass$") and under(o, CreedUIBar) then fill = o end
+end
+check(fill and fill.__vc and near(fill.__vc[3], 0.95) and fill.__vc[3] > fill.__vc[1], "the bar's glass in the mage's blue")
+-- a game that can't show the glass: the panel's own, darkened to the class's color, never flat bright
+CreedUIBar.deco.glassSet = nil
+M.missingArt = { PanelGlass = true }
+CreedUI.palStamp = CreedUI.palStamp + 1
+frames(3)
+check(fill.__tex and string.find(fill.__tex, "PanelFill$") and fill.__vc[3] < 0.5, "no glass texture: the panel's own glass, darkened in the mage's blue")
+M.missingArt = nil
+CreedUIBar.deco.glassSet = nil
+CreedUI.palStamp = CreedUI.palStamp + 1
+frames(3)
+check(string.find(fill.__tex, "PanelGlass$") ~= nil, "and the class glass when it's there")
+M.unit.player.class = nil
+M.Fire("PLAYER_ENTERING_WORLD")
+frames(5)
+check(CreedUI.uiTheme == "warrior", "before any run or class is known: a warrior's look, no bronze")
+check(not CreedUI.SetTheme("bronze") and CreedUI.uiTheme == "warrior", "there is no bronze look any more")
+check(onBar("PanelDragon") == 0, "nor dragons")
+M.unit.player.class = "Rogue"
+M.Fire("PLAYER_ENTERING_WORLD")
+frames(5)
+-- the class of the hero the run was started with, read from the run's loadout (asked for: the
+-- character's class isn't the run's hero's)
+local meterWas, loadoutWas, runWas = M.meter, M.loadout, M.meterRun
+M.meter = M.meter or { damage = {} }
+M.loadout, M.heroClass, M.meterRun = { abilities = {} }, "druid", "runA"
+SIM.Advance(1.5, 1 / 30)
+check(CreedUI.uiTheme == "druid" and onBar("PanelEmblemDruidL") == 1, "a run started as a druid (the character a rogue): the druid's look")
+check(CreedUIDB.heroClass == "druid", "kept for next time")
+M.Fire("PLAYER_ENTERING_WORLD")
+frames(5)
+check(CreedUI.uiTheme == "druid", "and it stays through a loading screen")
+M.heroClass, M.meterRun = "HUNTER", "runB"
+SIM.Advance(1.5, 1 / 30)
+check(CreedUI.uiTheme == "hunter", "the next run, as a hunter: the hunter's look")
+M.heroClass, M.meterRun = nil, "runC"
+SIM.Advance(1.5, 1 / 30)
+check(CreedUI.uiTheme == "rogue", "a run as the rogue again: the rogue's look")
+M.meter, M.loadout, M.meterRun = meterWas, loadoutWas, runWas
+problems("themes")
 
 ------------------------------------------------------------------ 8. moving frames
 M.Slash("move")
@@ -1738,7 +1821,64 @@ do
 	problems("languages")
 end
 
------------------------------------------------------------------- 11o. the chat stops short of the skill bar's dragon
+------------------------------------------------------------------ 11n2. the stats window: the run's stats, grouped, the ones you pick
+do
+	local was = AZS_STATS
+	AZS_STATS = { dmg = 2.57, crit = 0.404, cm = 2.97, cd = 0.71, echo = 0.32, hp = 2480, arm = 0.39, reg = 4.5, lch = 0.015,
+		spd = 1.58, luck = 0.2, area = 1.3, cnt = 2, xp = 1.2, gold = 1.27, pick = 9, heal = 0, thn = 0, liv = 1, bp = 0.3,
+		dots = 1, doth = 0, big = 0, exe = 0.3, cc = 0, dotd = 0.15, shd = 0, auto = 0.1, pet = 0 }
+	M.phase = "playing"
+	frames(30)
+	check(CreedUIStats and M.Visible(CreedUIStats), "the stats window shows in a run")
+	check(findText(CreedUIStats, "^Stats$") ~= nil and findText(CreedUIStats, "^OFFENSE$") ~= nil and findText(CreedUIStats, "^SURVIVAL$") ~= nil,
+		"titled, its groups under their headers")
+	check(findText(CreedUIStats, "^%+157%%$") ~= nil and findText(CreedUIStats, "^40.4%%$") ~= nil and findText(CreedUIStats, "^297%%$") ~= nil,
+		"damage, crit and crit damage as the game writes them: " .. table.concat(textsUnder(CreedUIStats), " | "))
+	check(findText(CreedUIStats, "^2,480$") ~= nil and findText(CreedUIStats, "^39%%$") ~= nil and findText(CreedUIStats, "^%+58%%$") ~= nil, "health, armor and speed")
+	local function rowShown(label)
+		for _, o in ipairs(M.All()) do
+			if o.__kind == "FontString" and o.__text == label and under(o, CreedUIStats) and not under(o, CreedUIStatsMenu) and M.Visible(o) then return true end
+		end
+		return false
+	end
+	check(not rowShown("Melee") and not rowShown("Pickup"), "the ones not picked stay out")
+	-- the + opens the list; ticking Melee adds it, kept in the settings
+	local pick
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "Button" and o.__parent == CreedUIStats and o.__scripts.OnClick then
+			for _, k in ipairs(M.All()) do if k.__parent == o and k.__text == "+" then pick = o end end
+		end
+	end
+	this = pick
+	pick:Click()
+	frames(3)
+	check(M.Visible(CreedUIStatsMenu), "its + opens the list of every stat")
+	for _, b in ipairs(CreedUIStatsMenu.items) do if b.name == "Melee" then this = b; b:Click() end end
+	frames(5)
+	check(rowShown("Melee") and findText(CreedUIStats, "^%+10%%$") ~= nil and CreedUIDB.stats.track["Melee"] == true, "ticked: Melee shows, and is kept")
+	for _, b in ipairs(CreedUIStatsMenu.items) do if b.name == "Crit" then this = b; b:Click() end end
+	frames(5)
+	check(not rowShown("Crit"), "unticked: Crit goes")
+	for _, b in ipairs(CreedUIStatsMenu.items) do if b.name == "Crit" then this = b; b:Click() end end
+	-- a stat going up flashes green
+	AZS_STATS.dmg = 2.80
+	frames(15)
+	local v
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "FontString" and o.__text == "+180%" and under(o, CreedUIStats) then v = o end
+	end
+	check(v and v.__color and v.__color[2] > v.__color[1] + 0.1, "damage going up flashes green")
+	-- out of a run, it goes
+	AZS_STATS = nil
+	frames(40)
+	check(not M.Visible(CreedUIStats), "no run: no stats window")
+	AZS_STATS = was
+	this = pick
+	pick:Click()
+	problems("stats window")
+end
+
+------------------------------------------------------------------ 11o. the chat stops short of the skill bar's emblem
 do
 	SIM.StartRun("naxx", { killAfter = 120 })
 	M.runTime = 30
@@ -1746,13 +1886,12 @@ do
 	M.Slash("reset")
 	ChatFrame1:SetWidth(420)
 	SIM.Advance(1.5, 1 / 30)
-	local dragon = CreedUIBar.deco.dragons[1]
-	local dl = M.Rect(dragon)
+	local dl = CreedUIBar.deco.LeftEnd() - 4 -- (dl + 4: where the emblem's paint begins)
 	local cl, cb, cr = M.Rect(ChatFrame1)
-	check(cr + 8 <= dl + 4 - 5, string.format("the chat's glass stops short of the dragon's snout (%.0f < %.0f)", cr + 8, dl + 4))
+	check(cr + 8 <= dl + 4 - 5, string.format("the chat's glass stops short of the emblem's paint (%.0f < %.0f)", cr + 8, dl + 4))
 	check(ChatFrame1:GetWidth() < 420 and ChatFrame1:GetWidth() >= 200, "by giving up the end of its width: " .. ChatFrame1:GetWidth())
 	-- sized by hand, that width is the one it keeps clear with
-	local clearW = math.floor(dl + 4 - 6 - 8 - cl) - 10 -- well short of the snout
+	local clearW = math.floor(dl + 4 - 6 - 8 - cl) - 10 -- well short of the emblem
 	ChatFrame1:SetWidth(clearW)
 	SIM.Advance(1, 1 / 30)
 	check(ChatFrame1:GetWidth() == clearW, "a width set by hand that's already clear stays: " .. ChatFrame1:GetWidth() .. " / " .. clearW)
@@ -2105,7 +2244,7 @@ do
 	local epic, blue, plain = bezelOf(CharacterMainHandSlot), bezelOf(CharacterChestSlot), bezelOf(CharacterHeadSlot)
 	check(epic and math.abs(epic.bezel.__vc[1] - 163 / 255) < 0.01 and math.abs(epic.bezel.__vc[3] - 238 / 255) < 0.01, "the epic blade's slot in purple")
 	check(blue and math.abs(blue.bezel.__vc[3] - 221 / 255) < 0.01 and blue.glow.__vc[4] > 0.3, "the blue chest's in blue, glowing")
-	check(plain and math.abs(plain.bezel.__vc[1] - 0.95) < 0.01 and math.abs(plain.bezel.__vc[2] - 0.79) < 0.01 and plain.glow.__vc[4] == 0, "a plain helm's in the panel's gold")
+	check(plain and math.abs(plain.bezel.__vc[1] - 0.94) < 0.01 and math.abs(plain.bezel.__vc[2] - 0.88) < 0.01 and plain.glow.__vc[4] == 0, "a plain helm's in the panel's metal (the rogue's)")
 	-- another page: the window's own pieces back, ours away; and back to this one
 	PaperDollFrame:Hide()
 	check(alpha(CharacterFramePortrait) == 1 and alpha(CharacterNameText) == 1 and not M.Visible(bg) and not M.Visible(panel),
@@ -2517,6 +2656,23 @@ do
 	M.storedLevels = 2
 	frames(20)
 	check(M.Visible(CreedUILevelUps) and findText(CreedUILevelUps, "^Level Up!$") and findText(CreedUILevelUps, "^2$"), "two waiting: Level Up! with a 2")
+	-- its frame in the class's metal, and a new class recolors it (it stayed in the class it was made in)
+	local function railOf(f)
+		for _, o in ipairs(M.All()) do
+			if o.__kind == "Texture" and o.__tex and string.find(o.__tex, "PanelRailT$") and o.__parent == f then return o end
+		end
+	end
+	local rail = railOf(CreedUILevelUps)
+	local mr = CreedUI.PanelMetal(CreedUI.Pal())
+	check(rail and rail.__vc and math.abs(rail.__vc[1] - mr) < 0.01, "the Level Up! button's frame in the class's metal")
+	CreedUI.SetTheme("mage")
+	frames(3)
+	check(rail and math.abs(rail.__vc[1] - 0.48) < 0.01 and math.abs(rail.__vc[3] - 0.95) < 0.01, "a mage's run: the frame turns the mage's blue")
+	CreedUI.SetTheme("warrior")
+	frames(3)
+	check(rail and math.abs(rail.__vc[1] - 0.80) < 0.01 and math.abs(rail.__vc[3] - 0.46) < 0.01, "a warrior's: the warrior's bronze, no longer blue")
+	CreedUI.SetTheme("class")
+	frames(3)
 	local glow = CreedUILevelUps.glow
 	frames(20)
 	local calm = glow.__alpha
@@ -2906,14 +3062,14 @@ do
 	problems("stacking numbers")
 end
 
------------------------------------------------------------------- 11j. the bar's dragons sit on its ends, clear of the slots
+------------------------------------------------------------------ 11j. the class's emblem and crest sit on the bar's ends, clear of the slots
 do
 	M.phase = "playing"
 	frames(10)
-	local d1, d2 = CreedUIBar.deco.dragons[1], CreedUIBar.deco.dragons[2]
+	local e1, e2 = CreedUIBar.deco.emblems[1], CreedUIBar.deco.emblems[2]
 	local pl, pb, pr, pt = M.Rect(CreedUIBar.panel)
-	local l1, b1, r1, t1 = M.Rect(d1)
-	local l2, b2, r2, t2 = M.Rect(d2)
+	local l1, b1, r1, t1 = M.Rect(e1)
+	local l2, b2, r2, t2 = M.Rect(e2)
 	local sl = 9999
 	local sr = -9999
 	for _, o in ipairs(M.All()) do
@@ -2922,12 +3078,16 @@ do
 			sl, sr = math.min(sl, l), math.max(sr, r)
 		end
 	end
-	check(math.abs(l1 - (pl - 122 * 0.4)) < 1 and r1 < sl, string.format("the left dragon straddles the panel's end, clear of the first slot (%.0f < %.0f)", r1, sl))
-	check(l2 > sr and math.abs(r2 - (pr + 122 * 0.4)) < 1, "and the right one the other end, past the last")
-	check(d1.__tc and d1.__tc[1] == 1 and d1.__tc[2] == 0 and not (d2.__tc and d2.__tc[1] == 1), "both face out: the left one mirrored, the right as painted")
-	check(d1.__vc and d1.__vc[1] == 1 and d1.__vc[2] == 1 and d1.__vc[3] == 1, "painted in its own colors (no tint)")
-	check(t1 > pt + 20, "rising over the panel's top")
-	problems("bar dragons")
+	local u = 76 / 110 * 0.85
+	-- drawn at 0.85 of the bar's scale; the emblem's middle (220 of its 512) 24 in from the panel's left
+	-- end, its ring (about 66 of its pixels round) clear of the first slot; the crest's (292) likewise
+	check(math.abs(l1 + 220 * u - (pl + 24)) < 1 and pl + 24 + 70 * u < sl, string.format("the emblem's middle just in from the panel's left end, its ring clear of the first slot (%.0f < %.0f)", pl + 24 + 70 * u, sl))
+	check(math.abs(l2 + 292 * u - (pr - 24)) < 1 and pr - 24 - 70 * u > sr, "the crest's middle just in from the right end, clear of the last")
+	check(math.abs((t1 - b1) / 2 + b1 - (pb + pt) / 2) < 1 and math.abs(t1 - b1 - 256 * u) < 1, "both centred on the bar")
+	check(l1 > pl - 120 and r2 < pr + 120 + 512 * u, "reaching less far past the bar's ends")
+	check(not e1.__vc and not e2.__vc, "painted in their own colors (no tint)")
+	check(t1 > pt + 20, "the emblem rising over the panel's top")
+	problems("bar emblems")
 end
 
 ------------------------------------------------------------------ 11k. the bar keeps its size as a run starts
@@ -2957,25 +3117,25 @@ do
 	problems("bar size")
 end
 
------------------------------------------------------------------- 11l. bronze gold in every zone
+------------------------------------------------------------------ 11l. the class's metal in every zone
 do
-	-- a zone with silver-blue metal (as Duskwood's): every part's still the bar's bronze gold
+	-- a zone with silver-blue metal (as Duskwood's): every part's still the hero's class's (a rogue's)
 	local was = CreedUI.pal
 	CreedUI.pal = { title = { 0.7, 0.8, 1 }, rim = { 0.62, 0.70, 0.86 }, gem = { 0.5, 0.7, 1 }, glow = { 0.6, 0.8, 1 },
 		trough = { 0.02, 0.04, 0.09 }, mc = { 0.7, 0.8, 1 }, fillA = { 0.1, 0.2, 0.5 }, fillM = { 0.2, 0.4, 0.9 }, fillB = { 0.5, 0.8, 1 } }
 	CreedUI.palStamp = CreedUI.palStamp + 1
 	frames(10)
 	local p = CreedUI.Pal()
-	check(p.rim[1] == 0.95 and p.rim[2] == 0.79 and p.title[1] == 0.98 and p.fillM[3] == 0.9, "the palette keeps the zone's fills, its metal bronze gold")
+	check(p.rim[1] == 0.94 and p.rim[2] == 0.88 and p.title[1] == 1.00 and p.fillM[3] == 0.9, "the palette keeps the zone's fills, its metal the rogue's")
 	local rim
 	for _, o in ipairs(M.All()) do
 		if o.__kind == "Texture" and o.__tex and string.find(o.__tex, "Art\\FrameL$") and under(o, CreedUIPlayer) then rim = o end
 	end
-	check(rim and rim.__vc and math.abs(rim.__vc[1] - 0.95) < 0.01 and math.abs(rim.__vc[3] - 0.44) < 0.01, "your frame's bar rim is bronze gold, not the zone's silver")
+	check(rim and rim.__vc and math.abs(rim.__vc[1] - 0.94) < 0.01 and math.abs(rim.__vc[3] - 0.40) < 0.01, "your frame's bar rim is the rogue's metal, not the zone's silver")
 	CreedUI.pal = was
 	CreedUI.palStamp = CreedUI.palStamp + 1
 	frames(5)
-	problems("bronze")
+	problems("class metal")
 end
 
 ------------------------------------------------------------------ 11m. the bar's ends even; the timer's metal bronze
@@ -2983,9 +3143,6 @@ do
 	M.phase = "playing"
 	frames(30)
 	local pl, pb, pr, pt = M.Rect(CreedUIBar.panel)
-	local d1, d2 = CreedUIBar.deco.dragons[1], CreedUIBar.deco.dragons[2]
-	local _, _, r1 = M.Rect(d1)
-	local l2 = M.Rect(d2)
 	local first, last = 9999, -9999
 	for _, o in ipairs(M.All()) do
 		if o.__kind == "Button" and o.__parent == CreedUIBar and M.Visible(o) then
@@ -2996,8 +3153,8 @@ do
 	end
 	local tl, _, tr = M.Rect(CreedUITally)
 	if M.Visible(CreedUITally) then last = math.max(last, tr) end
-	local gapL, gapR = first - r1, l2 - last
-	check(M.Visible(CreedUITally) and math.abs(gapL - gapR) < 16, string.format("the bar's two ends look the same: %.0f and %.0f from the dragons", gapL, gapR))
+	local gapL, gapR = first - pl, pr - last
+	check(M.Visible(CreedUITally) and math.abs(gapL - gapR) < 16, string.format("the bar's two ends look the same: %.0f and %.0f from the panel's ends", gapL, gapR))
 	local mid
 	for _, o in ipairs(M.All()) do
 		if o.__kind == "Texture" and o.__tex and string.find(o.__tex, "Art\\Diamond$") and o.__parent == CreedUIBar.panel and o.__w == 20 then
@@ -3320,8 +3477,12 @@ do
 	end
 	local g, b, o = colorOf("Dreadmist Mantle"), colorOf("Deathmist Robe"), colorOf("Ashbringer")
 	check(g and g[2] > 0.9 and g[1] < 0.3, "Dreadmist (Uncommon) in green")
-	check(b and b[3] > 0.8 and b[1] < 0.2, "Deathmist (Tier 0.5) in blue, not Dreadmist's green")
+	check(b and b[1] > 0.6 and b[3] > 0.9 and b[2] < 0.3, "Deathmist (Tier 0.5) in purple, as the game shows it")
 	check(o and o[1] > 0.9 and o[2] > 0.4 and o[2] < 0.6 and o[3] < 0.1, "Ashbringer (Legendary) in orange")
+	ChatFrame1:AddMessage("You receive loot: [Plagueheart Robe] New in your collection!")
+	frames(10)
+	local p = colorOf("Plagueheart Robe")
+	check(p and p[1] > 0.6 and p[3] > 0.9 and p[2] < 0.3, "the top sets' armor (Plagueheart) in purple, as in game; only their weapons orange")
 	ChatFrame1:AddMessage("Melkor says: You receive loot: nothing, haha")
 	frames(5)
 	check(findText(CreedUILoot, "nothing") == nil, "someone saying the words in chat isn't loot")
@@ -3387,14 +3548,14 @@ do
 		end
 		return n
 	end
-	M.Slash("numbers backdrop blood")
-	check(CreedUIDB.numbers.backdrop == "blood", "/creed numbers backdrop blood picks it")
+	M.Slash("numbers backdrop fire")
+	check(CreedUIDB.numbers.backdrop == "fire", "/creed numbers backdrop fire picks it")
 	local e = M.Enemy("Crit dummy", 3, 3)
 	M.Hit(e, 4321, "strike", false, true)
 	local e2 = M.Enemy("Plain dummy", -3, -3)
 	M.Hit(e2, 1234, "strike", false, false)
 	frames(6)
-	check(backs("Art\\NumBlood") == 1, "a crit wears the blood splatter, a plain hit doesn't: " .. backs("Art\\NumBlood"))
+	check(backs("Art\\NumFlame") == 1, "a crit wears the fire burst, a plain hit doesn't: " .. backs("Art\\NumFlame"))
 	CreedUIDB.numbers.backdrop = "frost"
 	local e3 = M.Enemy("Crit dummy 2", 5, -2)
 	M.Hit(e3, 999, "strike", false, true)
@@ -3402,7 +3563,29 @@ do
 	check(backs("Art\\NumFrost") >= 1, "another backdrop: the ice star")
 	CreedUIDB.numbers.backdrop = "none"
 	frames(6)
-	check(backs("Art\\NumFrost") == 0 and backs("Art\\NumBlood") == 0, "None: no backdrop")
+	check(backs("Art\\NumFrost") == 0 and backs("Art\\NumFlame") == 0, "None: no backdrop")
+	-- the burst: it swells past its size in a sixth of a second, then settles
+	frames(150) -- the earlier numbers gone
+	local function backW(name)
+		for _, o in ipairs(M.All()) do
+			if o.__kind == "Texture" and o.__tex and string.find(o.__tex, name .. "$") and under(o, CreedUINumbersLayer) and M.Visible(o) then return o.__w end
+		end
+	end
+	CreedUIDB.numbers.backdrop = "storm"
+	local e5 = M.Enemy("Crit dummy 3", -4, 1)
+	M.Hit(e5, 2468, "strike", false, true)
+	frames(2)
+	local early = backW("Art\\NumStorm")
+	frames(4)
+	local peak = backW("Art\\NumStorm")
+	frames(12)
+	local settled = backW("Art\\NumStorm")
+	check(early and peak and settled and early < peak and settled < peak,
+		string.format("the backdrop bursts in and settles (%s, %s, %s)", tostring(early), tostring(peak), tostring(settled)))
+	CreedUIDB.numbers.backdrop = "blood" -- a choice from before 1.20.4: gone, so none
+	M.Reload(DIR, true)
+	frames(3)
+	check(CreedUIDB.numbers.backdrop == "none", "a saved Blood backdrop (removed) falls back to none")
 	-- a font of Creed UI's own, from the addon's folder
 	local was = CreedUIDB.numbers.font
 	M.Slash("numbers font cinzel")
