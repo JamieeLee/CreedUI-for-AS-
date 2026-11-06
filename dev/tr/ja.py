@@ -288,4 +288,11 @@ T = {
 479: "+{1} マーク",
 480: "Creed UI の見た目の戦利品ポップアップ：ドロップのアイコン、名前、コレクションに新しいかどうか、獲得したマーク。ゲームのポップアップの代わりになります。",
 481: "エラーのため戦利品ポップアップを止め、ゲームのものに戻しました: ",
+482: "クリティカル背景",
+483: "クリティカル背景: ",
+484: "/creed numbers backdrop none、blood、fire、frost、arcane、holy、shadow - クリティカルの背後",
+485: "なし",
+486: "血",
+487: "フォント: ",
+488: "/creed numbers font <名前> - Friz Quadrata、Cinzel、Bangers、Creepster、Uncial Antiqua、Black Ops One、Pirata One など",
 }

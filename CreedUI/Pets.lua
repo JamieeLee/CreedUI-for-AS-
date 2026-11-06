@@ -148,6 +148,16 @@ local function SkillTip(s)
 	end
 end
 
+-- a value short enough to sit under a small icon: 487, 5.9K, 49K, 1.2M
+local function Compact(n)
+	n = n or 0
+	if n < 1000 then return tostring(math.floor(n + 0.5)) end
+	if n < 9950 then return string.format("%.1fK", n / 1000) end
+	if n < 999500 then return string.format("%dK", math.floor(n / 1000 + 0.5)) end
+	if n < 9950000 then return string.format("%.1fM", n / 1000000) end
+	return string.format("%dM", math.floor(n / 1000000 + 0.5))
+end
+
 ------------------------------------------------------------------------ the slots
 local function NewSlot(i)
 	local s = { cool = 0 }
@@ -281,15 +291,18 @@ local function Step(dt, now)
 			s.hasSkills = table.getn(list) > 0
 			for k = 1, math.min(table.getn(list), K.skills) do
 				n = n + 1
-				local sk = Put(n, x, K.skill, "skill")
 				local hv = list[k].hv
+				-- its value first, to know its room: a slot as wide as its number when that's wider
+				local pre = S.slots[n] or NewSlot(n)
+				C.SetText(pre.time, Compact(hv.last))
+				local cell = math.max(K.skill, math.ceil((pre.time:GetStringWidth() or 0) + 3))
+				local sk = Put(n, x + math.floor((cell - K.skill) / 2), K.skill, "skill")
 				sk.name, sk.value, sk.hv, sk.does = C.L(list[k].name), hv.last, hv, list[k].does
 				sk.icon:SetTexture(list[k].icon or "Interface\\Icons\\INV_Misc_QuestionMark")
 				C.Vis(sk.shade, false)
 				C.Vis(sk.glow, false)
 				C.SetText(sk.count, "")
-				C.SetText(sk.time, C.Short(sk.value))
-				x = x + K.skill + K.gap
+				x = x + cell + K.gap
 			end
 			x = x + K.gap * 2
 		end

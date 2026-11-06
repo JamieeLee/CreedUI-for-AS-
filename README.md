@@ -33,7 +33,7 @@ Click the **C** on the minimap's edge (or type `/creed`) for the options.
 - **Talent window:** your trees, points and learned talents (`/creed talents`).
 
 **Numbers and meters**
-- **Damage numbers:** calm and readable, in four motions (Smooth, Fountain, Rise, Impact); a spell hitting a crowd adds up into one number.
+- **Damage numbers:** calm and readable, in four motions (Smooth, Fountain, Rise, Impact) and ten fonts, with a backdrop behind crits if you like (Blood, Fire, Frost, Arcane, Holy, Shadow); a spell hitting a crowd adds up into one number.
 - **Damage meter:** Damage Done, Healing Done, Boss Damage, Party DPS (with each player's best skill) and Damage Taken; every pet's skills on one Pet line.
 - **Luck medallion:** your luck and the odds of a Rare, Epic or Legendary card.
 
@@ -72,4 +72,4 @@ Every part can be turned on or off, sized and moved (the chat too).
 
 ## Credits
 
-Original art made for Creed UI. The bundled fonts in `CreedUI/Fonts` are made from Lora and Noto Sans CJK, both under the SIL Open Font License (see `CreedUI/Fonts/LICENSE.txt`). Tiny Plates is based on Valorless's MIT-licensed ASTinyPlates (see `CreedUI/TinyPlates-LICENSE.txt`), brought in by JamieeLee.
+Original art made for Creed UI. The bundled fonts in `CreedUI/Fonts` are made from Lora and Noto Sans CJK, both under the SIL Open Font License (see `CreedUI/Fonts/LICENSE.txt`); the damage numbers' fonts (Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One) are under the same license (see `CreedUI/Fonts/NumberFonts-LICENSE.txt`). Tiny Plates is based on Valorless's MIT-licensed ASTinyPlates (see `CreedUI/TinyPlates-LICENSE.txt`), brought in by JamieeLee.

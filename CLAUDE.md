@@ -13,7 +13,7 @@ picture of the change.
   in Rust ([github.com/samwhosung/benilla](https://github.com/samwhosung/benilla)). The game adds its
   own addon API (`AZS_*`, see section 6).
 - Addon language: **Lua 5.0** with the **1.12 widget API**.
-- Current version: **1.19.0**. Repository: <https://github.com/CreedASui/CreedUI-for-AS->.
+- Current version: **1.20.2**. Repository: <https://github.com/CreedASui/CreedUI-for-AS->.
 - 11 languages: en, fr, de, es, pt, zh, ru, ja, ko, pl, tr.
 
 ## 2. Releases
@@ -40,13 +40,18 @@ CreedUI/            the addon (this folder name is the install folder; never ren
   Locale.lua        en/fr/de/es/pt rows; Locale_<zh|ru|ja|ko|pl|tr>.lua are generated (dev/tr)
   Timer.lua         the boss timer (DON'T TOUCH unless asked: the user loves it; 1.14.2 made its rims and
                     sockets C.BRONZE and its gems red, asked for)
-  Numbers.lua       floating damage numbers (combat text API)
+  Numbers.lua       floating damage numbers (combat text API); 1.20.0: crit backdrops (STACK.backs, art
+                    by dev/art/make_art20.py) and six bundled OFL fonts (Fonts/Num*.ttf, licences in
+                    Fonts/NumberFonts-LICENSE.txt; only Cinzel modified: instanced at Bold)
   Hurt.lua          damage taken as red numbers by the hero (new hits on AZS_TAKEN; the combat text
                     API carries outgoing hits only), heals got as green ones (AZS_HEALING; 1.16.1)
   Bosses.lua        boss and mini-boss bars        Units.lua    player and target frames
   Skulls.lua        a skull over each boss (horned, red eyes) and guardian, a gold chest over each cache
                     (world anchors, kind `cache`; 1.15.0), sized by distance
-  Party.lua         party frames; right click: Inspect (InspectUnit), Follow (FollowUnit), Whisper
+  Party.lua         party frames; a friend's shield on their health (1.20.1: UnitBuff by icon, SHIELDS; the
+                    amount read off the buff's tooltip with a hidden GameTooltip, else a 20% pane; not seen
+                    live: whether AS's shields are auras at all); right click: Inspect (TargetUnit then InspectUnit("target"), as the
+                    game's own menu; 1.19.1: InspectUnit("party1") opened nothing live), Follow (FollowUnit), Whisper
                     (ChatFrame_SendTell, else the chat box with "/w Name"); 1.18.0                   Chat.lua     dressed chat, kept clear of the dragon; moved and sized while unlocked (db.place,
                     the game's own kept as db.home; C.resetStamp tells it of a reset)
   Downed.lua        friends down: banner + sound, a revive mark on their spot, edge arrows (world anchors)
@@ -73,7 +78,9 @@ CreedUI/            the addon (this folder name is the install folder; never ren
                     from the game's chat lines ("You receive loot: [Name] New in your collection!",
                     "marks.earned"; all 14 languages, from the client's JSON) by wrapping each
                     ChatFrame's AddMessage. No link, icon or rarity reach Lua (the game's own toast has
-                    them natively), so the icon is guessed from the name (LOOKS)
+                    them natively), so the icon is guessed from the name (LOOKS) and the rarity from the
+                    set or weapon name (LootSets.lua, written by dev/tr/loot_sets.py from the game's
+                    "set.<class>.<rarity>" and "weapon.<class>.<n>.<rarity>" words; 1.20.2)
   Luck.lua          luck medallion (shown or hidden from the options hub since 1.14.3)
   TinyPlates.lua    nameplates (contributor JamieeLee, 1.14.3): based on Valorless's MIT-licensed
   TinyPlatesOptions.lua  ASTinyPlates (TinyPlates-LICENSE.txt); its own panel from the hub's button
@@ -147,7 +154,7 @@ Build Lua 5.0.3 (lua.org) and install Python 3 with numpy, Pillow, scipy, fontTo
 From `dev/`:
 
 ```
-lua50 cui/tests.lua . ../CreedUI                # 610 passed, 0 failed
+lua50 cui/tests.lua . ../CreedUI                # 623 passed, 0 failed
 lua50 cui/tiny_plates_tests.lua . ../CreedUI    # 35 passed
 lua50 cui/timer_tests.lua . ../CreedUI          # 82 passed
 lua50 cui/numbers_harness.lua . ../CreedUI/Numbers.lua   # ALL CHECKS PASSED (also with CROWD=1)

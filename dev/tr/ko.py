@@ -288,4 +288,11 @@ T = {
 479: "징표 +{1}",
 480: "Creed UI 모양의 전리품 알림: 아이템마다 아이콘, 이름, 새 수집품인지, 그리고 얻은 징표. 게임의 알림을 대신합니다.",
 481: "오류로 전리품 알림이 멈춰 게임의 알림으로 돌아갑니다: ",
+482: "치명타 배경",
+483: "치명타 배경: ",
+484: "/creed numbers backdrop none, blood, fire, frost, arcane, holy, shadow - 치명타 뒤",
+485: "없음",
+486: "피",
+487: "글꼴: ",
+488: "/creed numbers font <이름> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One...",
 }

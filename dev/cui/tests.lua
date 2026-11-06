@@ -580,6 +580,16 @@ do
 	this = CreedUIParty1
 	CreedUIParty1.__scripts.OnClick()
 	check(M.targeted == "party1", "clicking a friend targets them")
+	-- a friend's shield on their health, as your own frame shows yours
+	check((CreedUIParty1.creedBar.shield or 0) == 0, "no shield, no pane")
+	M.unit.party1.buffs = { "Interface\\Icons\\Spell_Nature_Regeneration", "Interface\\Icons\\Spell_Holy_PowerWordShield" }
+	frames(18)
+	check(CreedUIParty1.creedBar.shield > 0 and CreedUIParty1.creedBar.shieldTex.__shown ~= false and M.Visible(CreedUIParty1.creedBar.shieldTex),
+		"Power Word: Shield on a friend shows its icy pane on their health: " .. tostring(CreedUIParty1.creedBar.shield))
+	M.unit.party1.buffs = nil
+	frames(18)
+	frames(12)
+	check(CreedUIParty1.creedBar.shield == 0 and not M.Visible(CreedUIParty1.creedBar.shieldTex), "and it goes when the shield does")
 	-- a right click: Inspect, Follow, Whisper
 	this, arg1 = CreedUIParty1, "RightButton"
 	CreedUIParty1.__scripts.OnClick()
@@ -597,7 +607,8 @@ do
 		end
 	end
 	press("Inspect")
-	check(M.asked[table.getn(M.asked)] == "inspect party1" and not M.Visible(CreedUIPartyMenu), "Inspect opens their gear, and the menu closes")
+	check(M.targeted == "party1" and M.asked[table.getn(M.asked)] == "inspect target" and not M.Visible(CreedUIPartyMenu),
+		"Inspect targets them and inspects the target, as the game's own menu does; the menu closes")
 	this, arg1 = CreedUIParty1, "RightButton"
 	CreedUIParty1.__scripts.OnClick()
 	press("Follow")
@@ -608,13 +619,6 @@ do
 	check(ChatFrameEditBox:GetText() == "/w Melkor ", "Whisper opens the chat box to them: " .. tostring(ChatFrameEditBox:GetText()))
 	ChatFrameEditBox:SetText("")
 	ChatFrameEditBox:Hide()
-	M.farAway.party1 = true
-	local asked = table.getn(M.asked)
-	this, arg1 = CreedUIParty1, "RightButton"
-	CreedUIParty1.__scripts.OnClick()
-	press("Inspect")
-	check(table.getn(M.asked) == asked and chatHas("Too far away to inspect"), "too far away to inspect: it says so")
-	M.farAway.party1 = nil
 	arg1 = "LeftButton"
 	M.unit.party4 = { exists = false }
 	M.Fire("PARTY_MEMBERS_CHANGED")
@@ -3112,7 +3116,32 @@ do
 	ev = M.world.events[M.world.nEvents]
 	ev.meterSourceKey, ev.meterSource, ev.abilityName = "ability:kill_command:r2", nil, nil
 	frames(10)
-	check(findText(CreedUIPetBar, "^1,234$") ~= nil, "Kill Command's hits register by its key: " .. table.concat(textsUnder(CreedUIPetBar), " | "))
+	check(findText(CreedUIPetBar, "^1%.2K$") ~= nil, "Kill Command's hits register by its key: " .. table.concat(textsUnder(CreedUIPetBar), " | "))
+	-- big values side by side: short, and never over each other
+	for _, hit in ipairs({ { 48712, "bite" }, { 5868, "ability:kill_command:r2" } }) do
+		M.Hit(foe, hit[1], "strike", false)
+		ev = M.world.events[M.world.nEvents]
+		ev.meterSourceKey, ev.meterSource, ev.abilityName = hit[2], nil, nil
+	end
+	frames(10)
+	local vals = {}
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "FontString" and o.__text and under(o, CreedUIPetBar) and visibleAlpha(o) > 0.05 and string.find(o.__text, "^[%d%.]+[KM]?$") then
+			local l, b, r, t = M.Rect(o)
+			local w = M.TextWidth and M.TextWidth(o) or (r - l)
+			local cx = (l + r) / 2
+			table.insert(vals, { text = o.__text, l = cx - w / 2, r = cx + w / 2, y = (b + t) / 2 })
+		end
+	end
+	local clash = 0
+	for i = 1, table.getn(vals) do
+		for j = i + 1, table.getn(vals) do
+			local a, b = vals[i], vals[j]
+			if math.abs(a.y - b.y) < 6 and a.l < b.r and b.l < a.r then clash = clash + 1 end
+		end
+	end
+	check(findText(CreedUIPetBar, "^49K$") ~= nil and findText(CreedUIPetBar, "^5%.9K$") ~= nil and clash == 0,
+		"big values read 49K, 5.9K and don't overlap: " .. clash .. " | " .. table.concat(textsUnder(CreedUIPetBar), " | "))
 	table.remove(M.summons)
 	local pl, pb, pr = M.Rect(CreedUIPetBar)
 	local bl, bb, br, bt = M.Rect(CreedUIBar)
@@ -3278,6 +3307,21 @@ do
 		end
 	end
 	check(marksY and beltY and marksY < beltY, "the newest lowest, nearest the skill bar")
+	-- each drop in its rarity's color, known by its set's or weapon's name (the line gives none)
+	SIM.Advance(6, 1 / 30)
+	ChatFrame1:AddMessage("You receive loot: [Dreadmist Mantle] New in your collection!")
+	ChatFrame1:AddMessage("You receive loot: [Deathmist Robe] New in your collection!")
+	ChatFrame1:AddMessage("You receive loot: [Ashbringer] New in your collection!")
+	frames(10)
+	local function colorOf(text)
+		for _, o in ipairs(M.All()) do
+			if o.__kind == "FontString" and o.__text == text and under(o, CreedUILoot) then return o.__color end
+		end
+	end
+	local g, b, o = colorOf("Dreadmist Mantle"), colorOf("Deathmist Robe"), colorOf("Ashbringer")
+	check(g and g[2] > 0.9 and g[1] < 0.3, "Dreadmist (Uncommon) in green")
+	check(b and b[3] > 0.8 and b[1] < 0.2, "Deathmist (Tier 0.5) in blue, not Dreadmist's green")
+	check(o and o[1] > 0.9 and o[2] > 0.4 and o[2] < 0.6 and o[3] < 0.1, "Ashbringer (Legendary) in orange")
 	ChatFrame1:AddMessage("Melkor says: You receive loot: nothing, haha")
 	frames(5)
 	check(findText(CreedUILoot, "nothing") == nil, "someone saying the words in chat isn't loot")
@@ -3331,6 +3375,50 @@ do
 	CreedUI.SetUnlocked(false)
 	frames(2)
 	problems("chat moved")
+end
+
+------------------------------------------------------------------ 11h. damage numbers: crit backdrops and Creed UI's own fonts
+do
+	frames(200)
+	local function backs(name)
+		local n = 0
+		for _, o in ipairs(M.All()) do
+			if o.__kind == "Texture" and o.__tex and string.find(o.__tex, name .. "$") and under(o, CreedUINumbersLayer) and M.Visible(o) and visibleAlpha(o) > 0.05 then n = n + 1 end
+		end
+		return n
+	end
+	M.Slash("numbers backdrop blood")
+	check(CreedUIDB.numbers.backdrop == "blood", "/creed numbers backdrop blood picks it")
+	local e = M.Enemy("Crit dummy", 3, 3)
+	M.Hit(e, 4321, "strike", false, true)
+	local e2 = M.Enemy("Plain dummy", -3, -3)
+	M.Hit(e2, 1234, "strike", false, false)
+	frames(6)
+	check(backs("Art\\NumBlood") == 1, "a crit wears the blood splatter, a plain hit doesn't: " .. backs("Art\\NumBlood"))
+	CreedUIDB.numbers.backdrop = "frost"
+	local e3 = M.Enemy("Crit dummy 2", 5, -2)
+	M.Hit(e3, 999, "strike", false, true)
+	frames(6)
+	check(backs("Art\\NumFrost") >= 1, "another backdrop: the ice star")
+	CreedUIDB.numbers.backdrop = "none"
+	frames(6)
+	check(backs("Art\\NumFrost") == 0 and backs("Art\\NumBlood") == 0, "None: no backdrop")
+	-- a font of Creed UI's own, from the addon's folder
+	local was = CreedUIDB.numbers.font
+	M.Slash("numbers font cinzel")
+	check(CreedUIDB.numbers.font == 5, "/creed numbers font cinzel picks it")
+	local e4 = M.Enemy("Font dummy", 1, 6)
+	M.Hit(e4, 777, "strike", false, false)
+	frames(20)
+	local face
+	for _, o in ipairs(M.All()) do
+		if o.__kind == "FontString" and o.__text and string.find(M.Plain(o.__text), "%d") and under(o, CreedUINumbersLayer)
+			and M.Visible(o) and visibleAlpha(o) > 0.05 then face = o.__font end
+	end
+	check(face and string.find(face, "NumCinzel%.ttf$"), "a number in Creed UI's own font (Cinzel): " .. tostring(face))
+	CreedUIDB.numbers.font = was
+	frames(100)
+	problems("crit backdrops and fonts")
 end
 
 ------------------------------------------------------------------ 12. no API at all

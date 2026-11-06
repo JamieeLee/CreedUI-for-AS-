@@ -2,7 +2,7 @@
 ## Title: Creed UI
 ## Author: CreedASui
 ## Notes: A clean, smooth HUD for Azeroth Survivors. Click the C on the minimap (or type /creed) for options.
-## Version: 1.19.0
+## Version: 1.20.2
 ## SavedVariables: CreedUIDB
 Core.lua
 Locale.lua
@@ -31,6 +31,7 @@ TinyPlatesOptions.lua
 Chests.lua
 Meter.lua
 Luck.lua
+LootSets.lua
 Loot.lua
 Summary.lua
 Character.lua

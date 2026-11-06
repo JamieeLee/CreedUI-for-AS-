@@ -482,4 +482,11 @@ CreedUI.AddLanguage("zh", "中文", CreedUI.FACE_CJK, {
 	["+{1} marks"] = "+{1} 枚印记",
 	["Your own loot pop-up in Creed UI's look: each drop with its icon, its name and whether it's new to your collection, and the marks you earn. Replaces the game's pop-up."] = "Creed UI 风格的战利品弹窗：每件掉落的图标、名称以及是否为收藏新增，还有获得的印记。取代游戏自带的弹窗。",
 	["the loot pop-up stopped after an error, so the game's own is back: "] = "战利品弹窗因错误停止，已恢复游戏自带的：",
+	["Crit backdrop"] = "暴击背景",
+	["crit backdrop: "] = "暴击背景：",
+	["/creed numbers backdrop none, blood, fire, frost, arcane, holy or shadow - behind crits"] = "/creed numbers backdrop none、blood、fire、frost、arcane、holy 或 shadow - 暴击背后",
+	["None"] = "无",
+	["Blood"] = "鲜血",
+	["font: "] = "字体：",
+	["/creed numbers font <name> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One..."] = "/creed numbers font <名称> - Friz Quadrata、Cinzel、Bangers、Creepster、Uncial Antiqua、Black Ops One、Pirata One……",
 })

@@ -82,6 +82,14 @@ local FONTS = {
 	{ name = "Arial Narrow", path = "Fonts\\ARIALN.TTF" },
 	{ name = "Skurri", path = "Fonts\\SKURRI.TTF" },
 	{ name = "Morpheus", path = "Fonts\\MORPHEUS.TTF" },
+	-- Creed UI's own, open fonts (Fonts/NumberFonts-LICENSE.txt); in a language written in other
+	-- letters (Chinese, Russian...), its bundled face stands in
+	{ name = "Cinzel", path = "Interface\\AddOns\\CreedUI\\Fonts\\NumCinzel.ttf", own = true },
+	{ name = "Bangers", path = "Interface\\AddOns\\CreedUI\\Fonts\\NumBangers.ttf", own = true },
+	{ name = "Creepster", path = "Interface\\AddOns\\CreedUI\\Fonts\\NumCreepster.ttf", own = true },
+	{ name = "Uncial Antiqua", path = "Interface\\AddOns\\CreedUI\\Fonts\\NumUncial.ttf", own = true },
+	{ name = "Black Ops One", path = "Interface\\AddOns\\CreedUI\\Fonts\\NumBlackOps.ttf", own = true },
+	{ name = "Pirata One", path = "Interface\\AddOns\\CreedUI\\Fonts\\NumPirata.ttf", own = true },
 }
 
 local COLOR_NORMAL = { 1.00, 0.96, 0.88 }
@@ -113,6 +121,14 @@ local PRESET_NOTES = {
 }
 
 -- How the numbers move, picked apart from the style (in STACK: Lua 5.0 allows 200 locals).
+-- What a crit wears behind its number (in STACK: Lua 5.0 allows 200 locals): an original picture
+-- each, drawn by dev/art/make_art20.py.
+STACK.backs = {
+	order = { "none", "blood", "fire", "frost", "arcane", "holy", "shadow" },
+	names = { none = "None", blood = "Blood", fire = "Fire", frost = "Frost", arcane = "Arcane", holy = "Holy", shadow = "Shadow" },
+	tex = { blood = "NumBlood", fire = "NumFlame", frost = "NumFrost", arcane = "NumArcane", holy = "NumHoly", shadow = "NumShadow" },
+}
+
 STACK.motion = {
 	order = { "smooth", "fountain", "rise", "impact" },
 	names = { smooth = "Smooth", fountain = "Fountain", rise = "Rise", impact = "Impact" },
@@ -126,7 +142,7 @@ STACK.motion = {
 
 local DEFAULTS = {
 	enabled = true,
-	preset = "clean", motion = "smooth",
+	preset = "clean", motion = "smooth", backdrop = "none",
 	maxLabels = 12, group = false, mergeAge = 0.9, misses = false, minShare = 0,
 	size = 1.0, font = 1,
 	short = true, spread = true, count = false, school = false, icons = true,
@@ -237,6 +253,9 @@ local function InitDB()
 	db.maxLabels = Clamp(math.floor(db.maxLabels), 1, 80)
 	db.mergeAge = Clamp(db.mergeAge, 0.1, 2)
 	db.minShare = Clamp(db.minShare, 0, 0.9)
+	if not STACK.backs.names[db.backdrop or ""] then
+		db.backdrop = "none"
+	end
 	if not STACK.motion.names[db.motion or ""] then
 		db.motion = "smooth"
 	end
@@ -271,7 +290,12 @@ local allWidgets, nAllWidgets = {}, 0
 -- the face picked; in a language the game's own face draws (Core), that one
 local function FontPath()
 	local font = FONTS[db and db.font or 1] or FONTS[1]
-	if CUI.Face then return CUI.Face(font.path) end
+	if CUI.Face then
+		-- the language's own face when it has one (other letters); else the font picked
+		local lang = CUI.Face(font.path)
+		if font.own and lang ~= font.path then return lang end
+		return lang
+	end
 	return font.path
 end
 
@@ -318,7 +342,11 @@ local function NewWidget()
 	text:SetJustifyV("MIDDLE")
 	text:SetShadowColor(0, 0, 0, 0.9)
 	text:SetShadowOffset(1, -1)
-	local w = { holder = holder, visual = visual, text = text, icon = icon, edge = edge }
+	-- a crit's backdrop (Blood, Fire...), behind the icon and the number
+	local back = visual:CreateTexture(nil, "BACKGROUND")
+	back:SetPoint("CENTER", visual, "CENTER", 0, 0)
+	back:Hide()
+	local w = { holder = holder, visual = visual, text = text, icon = icon, edge = edge, back = back }
 	ApplyFont(w)
 	nAllWidgets = nAllWidgets + 1
 	allWidgets[nAllWidgets] = w
@@ -336,6 +364,7 @@ local function Layout(w, textWidth, iconPath, dt)
 			w.iconPath = iconPath
 		end
 	end
+	w.block = block
 	local target = -block / 2
 	if w.left == nil or w.layoutIcon ~= iconPath then
 		w.left = target
@@ -1822,6 +1851,27 @@ local function Animate(label, now, dt, ratio)
 		alpha = alpha * Smooth(shownAge / FADE_IN)
 	end
 	alpha = Clamp(alpha, 0, 1)
+	-- a crit wears its backdrop (Blood, Fire...), sized to its number
+	local back = label.crit and db.backdrop ~= "none" and STACK.backs.tex[db.backdrop]
+	if back then
+		if w.backTex ~= back then
+			w.back:SetTexture((CUI.ART or "Interface\\AddOns\\CreedUI\\Art\\") .. back)
+			w.backTex = back
+		end
+		local bw = math.floor((w.block or 60) * 1.6 + 46)
+		if w.backW ~= bw then
+			w.back:SetWidth(bw)
+			w.back:SetHeight(math.min(math.floor(bw * 0.5 + 0.5), FONT_SIZE * 3))
+			w.backW = bw
+		end
+		if not w.backShown then
+			w.back:Show()
+			w.backShown = true
+		end
+	elseif w.backShown then
+		w.back:Hide()
+		w.backShown = false
+	end
 	if not w.alpha or math.abs(w.alpha - alpha) > 0.004 then
 		w.holder:SetAlpha(alpha)
 		w.alpha = alpha
@@ -2236,6 +2286,7 @@ RefreshOptions = function()
 		PaintButton(button)
 	end
 	o.motionNote:SetText(L(STACK.motion.notes[db.motion] or ""))
+	o.backText:SetText(L(STACK.backs.names[db.backdrop] or "None"))
 	o.sizeText:SetText(string.format("%d%%", math.floor(db.size * 100 + 0.5)))
 	o.fontText:SetText(FONTS[db.font].name)
 	for i = 1, table.getn(o.checks) do
@@ -2252,7 +2303,7 @@ local function BuildOptions()
 	local o = CreateFrame("Frame", "CreedUINumbersOptions", UIParent)
 	options = o
 	o:SetWidth(300)
-	o:SetHeight(626)
+	o:SetHeight(662)
 	o:SetPoint("CENTER", UIParent, "CENTER", 0, 40)
 	if CUI.AboveHub then CUI.AboveHub(o) else o:SetFrameStrata("DIALOG") end
 	o:SetBackdrop({ bgFile = FLAT, edgeFile = FLAT, edgeSize = 1, insets = { left = 1, right = 1, top = 1, bottom = 1 } })
@@ -2339,10 +2390,10 @@ local function BuildOptions()
 		OnSettingChanged("font")
 		RefreshOptions()
 	end)
-	previous:SetPoint("TOPLEFT", o, "TOPLEFT", 126, -194)
+	previous:SetPoint("TOPLEFT", o, "TOPLEFT", 112, -194)
 	o.fontText = Text(o, 11, 1, 1, 1)
 	o.fontText:SetPoint("LEFT", previous, "RIGHT", 0, 0)
-	o.fontText:SetWidth(80)
+	o.fontText:SetWidth(120)
 	o.fontText:SetJustifyH("CENTER")
 	local nextFont = MakeButton(o, 26, 22, ">", function()
 		db.font = db.font + 1
@@ -2352,7 +2403,7 @@ local function BuildOptions()
 		OnSettingChanged("font")
 		RefreshOptions()
 	end)
-	nextFont:SetPoint("LEFT", previous, "RIGHT", 80, 0)
+	nextFont:SetPoint("LEFT", previous, "RIGHT", 120, 0)
 
 	local divider = Fill(o, "ARTWORK", 1, 1, 1, 0.08)
 	divider:SetPoint("TOPLEFT", o, "TOPLEFT", 14, -228)
@@ -2412,6 +2463,28 @@ local function BuildOptions()
 	o.motionNote:SetWidth(272)
 	o.motionNote:SetJustifyH("LEFT")
 
+	-- what a crit wears behind its number
+	local backHead = Text(o, 12, 0.85, 0.85, 0.9)
+	backHead:SetPoint("TOPLEFT", o, "TOPLEFT", 14, -604)
+	LText(backHead, "Crit backdrop")
+	local function Step(by)
+		local order, at = STACK.backs.order, 1
+		for i = 1, table.getn(order) do
+			if order[i] == db.backdrop then at = i end
+		end
+		at = math.mod(at - 1 + by + table.getn(order), table.getn(order)) + 1
+		db.backdrop = order[at]
+		RefreshOptions()
+	end
+	local prevBack = MakeButton(o, 26, 22, "<", function() Step(-1) end)
+	prevBack:SetPoint("TOPLEFT", o, "TOPLEFT", 112, -600)
+	o.backText = Text(o, 11, 1, 1, 1)
+	o.backText:SetPoint("LEFT", prevBack, "RIGHT", 0, 0)
+	o.backText:SetWidth(120)
+	o.backText:SetJustifyH("CENTER")
+	local nextBack = MakeButton(o, 26, 22, ">", function() Step(1) end)
+	nextBack:SetPoint("LEFT", prevBack, "RIGHT", 120, 0)
+
 	local footer = Text(o, 10, 0.5, 0.5, 0.55)
 	footer:SetPoint("BOTTOM", o, "BOTTOM", 0, 10)
 	LText(footer, "Type /creed numbers to open this window.")
@@ -2445,6 +2518,8 @@ local function Help()
 	Print(L("/creed numbers crowd - merge a spell hitting 3+ enemies, on or off"))
 	Print(L("/creed numbers spells - merge every spell, on or off"))
 	Print(L("/creed numbers smooth, fountain, rise or impact - how the numbers move"))
+	Print(L("/creed numbers backdrop none, blood, fire, frost, arcane, holy or shadow - behind crits"))
+	Print(L("/creed numbers font <name> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One..."))
 	Print(L("/creed numbers preview - show some pretend numbers"))
 	Print(L("/creed numbers reset - default settings"))
 end
@@ -2471,6 +2546,25 @@ local function NumberSlash(msg)
 			RefreshOptions()
 		end
 		Print(L("style: ") .. L(PRESET_NAMES[command]) .. ". " .. L(PRESET_NOTES[command]))
+	elseif command == "font" and rest ~= "" then
+		-- by its name, or the start of it ("cinzel", "black")
+		local want = string.lower(rest)
+		for i = 1, table.getn(FONTS) do
+			if string.find(string.lower(FONTS[i].name), want, 1, true) == 1 then
+				db.font = i
+				OnSettingChanged("font")
+				if RefreshOptions then RefreshOptions() end
+				Print(L("font: ") .. FONTS[i].name)
+				return
+			end
+		end
+		Help()
+	elseif command == "backdrop" and STACK.backs.names[string.lower(rest or "")] then
+		db.backdrop = string.lower(rest)
+		if RefreshOptions then
+			RefreshOptions()
+		end
+		Print(L("crit backdrop: ") .. L(STACK.backs.names[db.backdrop]))
 	elseif STACK.motion.names[command] then
 		db.motion = command
 		if RefreshOptions then

@@ -288,4 +288,11 @@ T = {
 479: "+{1} nişan",
 480: "Creed UI görünümünde kendi ganimet bildirimin: her düşen eşya simgesi, adı ve koleksiyonunda yeni olup olmadığıyla, bir de kazandığın nişanlar. Oyunun bildiriminin yerini alır.",
 481: "ganimet bildirimi bir hatadan sonra durdu, oyununki geri geldi: ",
+482: "Kritik arka planı",
+483: "kritik arka planı: ",
+484: "/creed numbers backdrop none, blood, fire, frost, arcane, holy veya shadow - kritiklerin arkasında",
+485: "Yok",
+486: "Kan",
+487: "yazı tipi: ",
+488: "/creed numbers font <ad> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One...",
 }

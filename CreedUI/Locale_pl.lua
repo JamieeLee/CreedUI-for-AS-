@@ -482,4 +482,11 @@ CreedUI.AddLanguage("pl", "Polski", CreedUI.FACE_LETTERS, {
 	["+{1} marks"] = "Znaki: +{1}",
 	["Your own loot pop-up in Creed UI's look: each drop with its icon, its name and whether it's new to your collection, and the marks you earn. Replaces the game's pop-up."] = "Własne okienko łupu w stylu Creed UI: każdy przedmiot z ikoną, nazwą i informacją, czy jest nowy w kolekcji, oraz zdobyte znaki. Zastępuje okienko gry.",
 	["the loot pop-up stopped after an error, so the game's own is back: "] = "okienko łupu zatrzymało się po błędzie, wraca to z gry: ",
+	["Crit backdrop"] = "Tło krytyków",
+	["crit backdrop: "] = "tło krytyków: ",
+	["/creed numbers backdrop none, blood, fire, frost, arcane, holy or shadow - behind crits"] = "/creed numbers backdrop none, blood, fire, frost, arcane, holy lub shadow - za krytykami",
+	["None"] = "Brak",
+	["Blood"] = "Krew",
+	["font: "] = "czcionka: ",
+	["/creed numbers font <name> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One..."] = "/creed numbers font <nazwa> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One...",
 })

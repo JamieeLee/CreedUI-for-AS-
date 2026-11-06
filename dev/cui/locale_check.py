@@ -97,7 +97,7 @@ for f in sorted(glob.glob(os.path.join(D, "*.lua"))):
 
 # not words to translate: names, samples, symbols, keys
 NOT_WORDS = {"", "x", "+", "-", "<", ">", "^", "English", "Azeroth", "Naxxramas", "Creed UI", "Smooth Boss Timer",
-             "Friz Quadrata", "Arial Narrow", "Skurri", "Morpheus", "Fireball", "Frostbolt", "Lightning Bolt", "Moonfire",
+             "Friz Quadrata", "Cinzel", "Bangers", "Creepster", "Uncial Antiqua", "Black Ops One", "Pirata One", "Arial Narrow", "Skurri", "Morpheus", "Fireball", "Frostbolt", "Lightning Bolt", "Moonfire",
              "Corruption", "Rupture", "Edwin VanCleef", "Sir Zeliek", "Jaina", "Anduin", "Varian", "CreedUIPlayer",
              "CreedUITarget", "NeckSlot", "Finger0Slot", "Finger1Slot", "Trinket0Slot", "Trinket1Slot", "Magic",
              "Glow", "Training Dummy"}

@@ -88,15 +88,20 @@ local function Whisper(name)
 	end
 end
 
+-- As the game's own menu does it: the friend becomes your target, then the target is inspected (the
+-- client's inspect window works from the target); the game itself says when they're too far.
 local function Inspect(unit)
-	if type(CheckInteractDistance) == "function" and not Call(CheckInteractDistance, unit, 1) then
-		C.Print(C.L("Too far away to inspect."))
+	if type(TargetUnit) == "function" then Call(TargetUnit, unit) end
+	if type(InspectUnit) == "function" then
+		Call(InspectUnit, "target")
 		return
 	end
-	if type(InspectUnit) == "function" then
-		Call(InspectUnit, unit)
+	-- no InspectUnit: the 1.12 inspect window, loaded when first wanted
+	if type(LoadAddOn) == "function" and type(InspectFrame_Show) ~= "function" then pcall(LoadAddOn, "Blizzard_InspectUI") end
+	if type(InspectFrame_Show) == "function" then
+		Call(InspectFrame_Show, "target")
 	elseif type(NotifyInspect) == "function" then
-		Call(NotifyInspect, unit)
+		Call(NotifyInspect, "target")
 	end
 end
 
@@ -212,6 +217,7 @@ local function NewRow(i)
 
 	-- health in the class's color, then the power bar
 	r.hp = C.NewBar(f, HP_W, HP_H, true)
+	f.creedBar = r.hp -- (the stand-in's tests read its shield)
 	r.hp.frame:SetPoint("TOPLEFT", f, "TOPLEFT", BAR_X, -18)
 	r.hpText = C.Text(r.hp.top, C.FONT, 10, "OUTLINE", "CENTER", HP_W + 30)
 	r.hpText:SetPoint("CENTER", r.hp.frame, "CENTER", 0, 0)
@@ -274,6 +280,60 @@ local function Read(r, d, sample)
 	d.offline = (type(UnitIsConnected) == "function" and not connected) and true or false
 end
 
+------------------------------------------------------------------------ a friend's shield
+-- A friend wearing a shield (Power Word: Shield, Ice Barrier, a ward...) shows it on their health
+-- as your own frame does: an icy pane after the health. How much it holds is read off the buff's
+-- own words ("Absorbing 442 damage"); when those give no number, a small pane still says one is up.
+local SHIELDS = {
+	spell_holy_powerwordshield = true, spell_ice_lament = true, spell_shadow_detectlesserinvisibility = true,
+	spell_frost_frostward = true, spell_fire_firearmor = true, spell_shadow_sacrificialshield = true,
+	spell_holy_divineintervention = true, spell_holy_restoration = true, spell_holy_sealofprotection = true,
+}
+local SHIELD_SEEN = 0.2 -- the pane when the amount can't be read: a fifth of their health
+local scan -- a hidden tooltip to read a buff's words; false when the client can't make one
+
+local function Amount(unit, i)
+	if scan == nil then
+		local ok, tip = pcall(CreateFrame, "GameTooltip", "CreedUIShieldScan", UIParent, "GameTooltipTemplate")
+		scan = ok and tip or false
+	end
+	if not scan then return nil end
+	scan:SetOwner(WorldFrame, "ANCHOR_NONE")
+	scan:ClearLines()
+	if not pcall(scan.SetUnitBuff, scan, unit, i) then return nil end
+	local most
+	for l = 2, scan:NumLines() do
+		local line = getglobal("CreedUIShieldScanTextLeft" .. l)
+		local text = line and line:GetText()
+		if text then
+			for n in string.gfind(text, "%d+") do
+				n = tonumber(n)
+				if n and (not most or n > most) then most = n end
+			end
+		end
+	end
+	scan:Hide()
+	return most
+end
+
+-- the share of their health their shields hold now (0 with none)
+local function ShieldOf(unit, hpm)
+	if type(UnitBuff) ~= "function" then return 0 end
+	local held, any = 0, false
+	for i = 1, 32 do
+		local tex = Call(UnitBuff, unit, i)
+		if not tex then break end
+		local _, _, base = string.find(string.lower(tex), "([^\\/]+)$")
+		if base and SHIELDS[base] then
+			any = true
+			held = held + (Amount(unit, i) or 0)
+		end
+	end
+	if not any then return 0 end
+	if held > 0 then return C.Clamp(held / math.max(hpm, 1), 0.04, 1) end
+	return SHIELD_SEEN
+end
+
 ------------------------------------------------------------------------ drawing a row
 local function StepRow(r, d, slotY, dt, now)
 	if not r.y then r.y = slotY - 8 end
@@ -283,6 +343,12 @@ local function StepRow(r, d, slotY, dt, now)
 
 	local hpm = d.hpm > 0 and d.hpm or 1
 	local hp = d.dead and 0 or d.hp
+	-- their shield, looked for twice a second
+	r.shieldClock = (r.shieldClock or 0) - dt
+	if r.shieldClock <= 0 then
+		r.shieldClock = 0.5
+		r.hp.shield = (d.dead or d.offline) and 0 or ShieldOf(r.unit, hpm)
+	end
 	C.BarStep(r.hp, d.offline and 1 or C.Clamp(hp / hpm, 0, 1), dt, now)
 	-- the class's color; grey while offline
 	local key = d.offline and "offline" or (d.class or "none")

@@ -48,6 +48,26 @@ local LOOKS = {
 	{ { "trinket", "idol", "charm", "talisman", "relic", "libram", "totem", "figurine", "insignia" }, "INV_Jewelry_Talisman_01" },
 }
 
+-- a drop's rarity by its name: a weapon by its whole name, a piece by its set's name in it (the
+-- longest found), from the game's own words in LootSets.lua; as WoW's colors: the game's Common is
+-- white, Uncommon green, Rare blue, Epic purple, Legendary orange, and its Tier 0.5 blue
+local TO_QUALITY = { [0] = 1, [1] = 2, [2] = 3, [3] = 4, [4] = 5, [7] = 3 }
+
+local function RarityOfName(name)
+	if type(name) ~= "string" then return nil end
+	local r = C.lootWeapons and C.lootWeapons[name]
+	if not r and C.lootSets then
+		local best = 0
+		for set, rarity in pairs(C.lootSets) do
+			local n = string.len(set)
+			if n > best and string.find(name, set, 1, true) then
+				best, r = n, rarity
+			end
+		end
+	end
+	return r and TO_QUALITY[r]
+end
+
 local function LookOf(name)
 	local words = " " .. string.gsub(string.lower(name or ""), "[^%a]+", " ") .. " "
 	for i = 1, table.getn(LOOKS) do
@@ -148,6 +168,7 @@ local function Hear(msg)
 				item.quality, item.icon = quality or item.quality, icon
 			end
 			if not item.icon then item.icon = LookOf(item.name) end
+			if not item.quality then item.quality = RarityOfName(item.name) end
 			if not item.quality then
 				local _, _, hex = string.find(item.link or "", "^|c%x%x(%x%x%x%x%x%x)")
 				item.quality = Rarity(hex)

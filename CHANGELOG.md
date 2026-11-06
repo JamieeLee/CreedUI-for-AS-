@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.20.2
+- **Loot pop-up: each drop in its rarity's color.** The game's loot line doesn't say how rare a drop is, so Creed UI knows it by the piece's set or weapon name, in any of the game's languages: Common in white, Uncommon in green, Rare and Tier 0.5 in blue, Epic in purple, Legendary in orange.
+
+## 1.20.1
+- **Party frames: your friends' shields.** A friend wearing a shield (Power Word: Shield, Ice Barrier, Mana Shield, Frost or Fire Ward, Sacrifice, Divine Shield or Protection, Blessing of Protection) shows it on their health as your own frame does: an icy pane after their health, as big as the shield holds (read from the buff's own words), or a small one when the game doesn't say.
+
+## 1.20.0
+- **Damage numbers: crit backdrops.** Pick one in the numbers' options (Crit backdrop) or with `/creed numbers backdrop <name>`, and every critical hit wears it behind its number: **Blood** (a splatter with flung droplets), **Fire** (a burst of flames), **Frost** (an ice star), **Arcane** (a ring of runes), **Holy** (a sunburst) or **Shadow** (a curl of smoke). Off by default.
+- **Damage numbers: six new fonts** to pick from, beside the game's four: **Cinzel** (regal capitals), **Bangers** (comic punch), **Creepster** (dripping horror), **Uncial Antiqua** (old runic hand), **Black Ops One** (stencil) and **Pirata One** (gothic). Pick one in the options or with `/creed numbers font <name>`. (In Chinese, Japanese, Korean and Russian the language's own letters stay.)
+
+## 1.19.2
+- **Pet bar: big numbers no longer pile up.** The value under each pet skill is kept short (487, 5.9K, 49K, 1.2M) and each skill gets the room its number needs, so neighbours never run into each other.
+
+## 1.19.1
+- **Inspect from the party menu opens their gear.** It now works as the game's own menu does: your friend becomes your target and the target is inspected (the game's inspect window works from the target). The game itself says when they're too far away.
+
 ## 1.19.0
 - **Loot pop-up instead of the loot window.** When the game gives you loot, a Creed UI pop-up rises in over the skill bar in place of the game's own: the item's icon in a metal slot, its name, and whether it's new to your collection (in green) or one you already had. Marks you earn pop up too, on an Argent Dawn token, with how many you have in all. Up to three stack, and each melts away after a few seconds. The loot window is gone; turning the Loot part off brings back the game's own pop-up.
 

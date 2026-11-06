@@ -482,4 +482,11 @@ CreedUI.AddLanguage("ru", "Русский", CreedUI.FACE_LETTERS, {
 	["+{1} marks"] = "+{1} знаков",
 	["Your own loot pop-up in Creed UI's look: each drop with its icon, its name and whether it's new to your collection, and the marks you earn. Replaces the game's pop-up."] = "Своё окно добычи в стиле Creed UI: каждый предмет со значком, названием и пометкой, новый ли он в коллекции, и заработанные знаки. Заменяет окно игры.",
 	["the loot pop-up stopped after an error, so the game's own is back: "] = "окно добычи остановлено после ошибки, вернулось окно игры: ",
+	["Crit backdrop"] = "Фон критов",
+	["crit backdrop: "] = "фон критов: ",
+	["/creed numbers backdrop none, blood, fire, frost, arcane, holy or shadow - behind crits"] = "/creed numbers backdrop none, blood, fire, frost, arcane, holy или shadow - за критами",
+	["None"] = "Нет",
+	["Blood"] = "Кровь",
+	["font: "] = "шрифт: ",
+	["/creed numbers font <name> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One..."] = "/creed numbers font <название> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One...",
 })

@@ -482,4 +482,11 @@ CreedUI.AddLanguage("ja", "日本語", CreedUI.FACE_CJK, {
 	["+{1} marks"] = "+{1} マーク",
 	["Your own loot pop-up in Creed UI's look: each drop with its icon, its name and whether it's new to your collection, and the marks you earn. Replaces the game's pop-up."] = "Creed UI の見た目の戦利品ポップアップ：ドロップのアイコン、名前、コレクションに新しいかどうか、獲得したマーク。ゲームのポップアップの代わりになります。",
 	["the loot pop-up stopped after an error, so the game's own is back: "] = "エラーのため戦利品ポップアップを止め、ゲームのものに戻しました: ",
+	["Crit backdrop"] = "クリティカル背景",
+	["crit backdrop: "] = "クリティカル背景: ",
+	["/creed numbers backdrop none, blood, fire, frost, arcane, holy or shadow - behind crits"] = "/creed numbers backdrop none、blood、fire、frost、arcane、holy、shadow - クリティカルの背後",
+	["None"] = "なし",
+	["Blood"] = "血",
+	["font: "] = "フォント: ",
+	["/creed numbers font <name> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One..."] = "/creed numbers font <名前> - Friz Quadrata、Cinzel、Bangers、Creepster、Uncial Antiqua、Black Ops One、Pirata One など",
 })

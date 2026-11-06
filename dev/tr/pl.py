@@ -288,4 +288,11 @@ T = {
 479: "Znaki: +{1}",
 480: "Własne okienko łupu w stylu Creed UI: każdy przedmiot z ikoną, nazwą i informacją, czy jest nowy w kolekcji, oraz zdobyte znaki. Zastępuje okienko gry.",
 481: "okienko łupu zatrzymało się po błędzie, wraca to z gry: ",
+482: "Tło krytyków",
+483: "tło krytyków: ",
+484: "/creed numbers backdrop none, blood, fire, frost, arcane, holy lub shadow - za krytykami",
+485: "Brak",
+486: "Krew",
+487: "czcionka: ",
+488: "/creed numbers font <nazwa> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One...",
 }

@@ -288,4 +288,11 @@ T = {
 479: "+{1} 枚印记",
 480: "Creed UI 风格的战利品弹窗：每件掉落的图标、名称以及是否为收藏新增，还有获得的印记。取代游戏自带的弹窗。",
 481: "战利品弹窗因错误停止，已恢复游戏自带的：",
+482: "暴击背景",
+483: "暴击背景：",
+484: "/creed numbers backdrop none、blood、fire、frost、arcane、holy 或 shadow - 暴击背后",
+485: "无",
+486: "鲜血",
+487: "字体：",
+488: "/creed numbers font <名称> - Friz Quadrata、Cinzel、Bangers、Creepster、Uncial Antiqua、Black Ops One、Pirata One……",
 }

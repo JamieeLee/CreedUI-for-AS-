@@ -29,7 +29,7 @@ M.meter = { damage = {
 AZS_CHESTS = { { id = 7, x = 100, y = 170, z = 0, mx = -1, my = -1 } }
 AZS_CHESTS_UPDATED = M.now
 local foe = M.Enemy("Ghoul", 2, 4)
-for _, h in ipairs({ { 312, "bite", "Bite" }, { 488, "howl", "Furious Howl" }, { 1250, "immo", "Immolation" } }) do
+for _, h in ipairs({ { 48712, "bite", "Bite" }, { 5868, "howl", "Furious Howl" }, { 9784, "immo", "Immolation" }, { 2204, "raptor_strike", "Raptor Strike" } }) do
 	M.Hit(foe, h[1], "strike", false)
 	local ev = M.world.events[M.world.nEvents]
 	ev.meterSourceKey, ev.meterSource = h[2], h[3]

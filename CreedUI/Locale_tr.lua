@@ -482,4 +482,11 @@ CreedUI.AddLanguage("tr", "Türkçe", CreedUI.FACE_LETTERS, {
 	["+{1} marks"] = "+{1} nişan",
 	["Your own loot pop-up in Creed UI's look: each drop with its icon, its name and whether it's new to your collection, and the marks you earn. Replaces the game's pop-up."] = "Creed UI görünümünde kendi ganimet bildirimin: her düşen eşya simgesi, adı ve koleksiyonunda yeni olup olmadığıyla, bir de kazandığın nişanlar. Oyunun bildiriminin yerini alır.",
 	["the loot pop-up stopped after an error, so the game's own is back: "] = "ganimet bildirimi bir hatadan sonra durdu, oyununki geri geldi: ",
+	["Crit backdrop"] = "Kritik arka planı",
+	["crit backdrop: "] = "kritik arka planı: ",
+	["/creed numbers backdrop none, blood, fire, frost, arcane, holy or shadow - behind crits"] = "/creed numbers backdrop none, blood, fire, frost, arcane, holy veya shadow - kritiklerin arkasında",
+	["None"] = "Yok",
+	["Blood"] = "Kan",
+	["font: "] = "yazı tipi: ",
+	["/creed numbers font <name> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One..."] = "/creed numbers font <ad> - Friz Quadrata, Cinzel, Bangers, Creepster, Uncial Antiqua, Black Ops One, Pirata One...",
 })

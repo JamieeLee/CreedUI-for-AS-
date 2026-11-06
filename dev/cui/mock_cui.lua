@@ -884,7 +884,7 @@ function M.Frame(dt)
 end
 
 M.files = { "Core.lua", "Locale.lua", "Locale_zh.lua", "Locale_ru.lua", "Locale_ja.lua", "Locale_ko.lua", "Locale_pl.lua", "Locale_tr.lua", "Timer.lua", "Numbers.lua", "Hurt.lua", "Bosses.lua", "Skulls.lua", "Units.lua", "Party.lua", "Downed.lua", "Bar.lua", "Pets.lua", "Tally.lua", "LevelUps.lua", "Minimap.lua", "MinimapButton.lua",
-	"Chests.lua", "Meter.lua", "Luck.lua", "Loot.lua", "Summary.lua", "Character.lua", "Talents.lua", "Chat.lua" }
+	"Chests.lua", "Meter.lua", "Luck.lua", "LootSets.lua", "Loot.lua", "Summary.lua", "Character.lua", "Talents.lua", "Chat.lua" }
 function M.Load(dir)
 	for i = 1, table.getn(M.files) do
 		local chunk, err = loadfile(dir .. "/" .. M.files[i])
@@ -1008,6 +1008,11 @@ M.unit = {
 local function U(unit) return M.unit[unit] or {} end
 function UnitExists(u) return U(u).exists and 1 or nil end
 function UnitName(u) return U(u).name end
+-- a unit's buffs: M.unit[u].buffs = { texture, ... }
+function UnitBuff(u, i)
+	local b = U(u).buffs
+	return b and b[i] or nil
+end
 function UnitHealth(u) return U(u).hp or 0 end
 function UnitHealthMax(u) return U(u).hpm or 0 end
 function UnitMana(u) return U(u).mp or 0 end
